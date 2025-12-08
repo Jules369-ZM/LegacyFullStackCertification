@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const mongoose = require('mongoose');
+const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
@@ -127,6 +128,64 @@ const userSchema = new mongoose.Schema({
 
 const Exercise = mongoose.model('Exercise', exerciseSchema);
 const User = mongoose.model('User', userSchema);
+
+// ==================== IMAGE SEARCH ABSTRACTION LAYER ====================
+const searchSchema = new mongoose.Schema({
+  term: { type: String, required: true },
+  when: { type: Date, default: Date.now }
+});
+
+const Search = mongoose.model('Search', searchSchema);
+
+// Image search endpoint
+app.get('/api/imagesearch/:searchterm', async (req, res) => {
+  try {
+    const searchterm = req.params.searchterm;
+    const offset = parseInt(req.query.offset) || 10;
+
+    // Save search to DB
+    const search = new Search({ term: searchterm });
+    await search.save();
+
+    // Bing Image Search API
+    const apiKey = process.env.BING_API_KEY;
+    if (!apiKey) {
+      return res.json({ error: 'Bing API key not configured' });
+    }
+
+    const response = await axios.get(`https://api.bing.microsoft.com/v7.0/images/search`, {
+      params: {
+        q: searchterm,
+        count: offset,
+        mkt: 'en-US'
+      },
+      headers: {
+        'Ocp-Apim-Subscription-Key': apiKey
+      }
+    });
+
+    const results = response.data.value.map(img => ({
+      url: img.contentUrl,
+      snippet: img.name,
+      thumbnail: img.thumbnailUrl,
+      context: img.hostPageUrl
+    }));
+
+    res.json(results);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+// Latest searches endpoint
+app.get('/api/latest/imagesearch', async (req, res) => {
+  try {
+    const searches = await Search.find({}, 'term when -_id').sort({ when: -1 }).limit(10);
+    res.json(searches);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
 
 // Create new user
 app.post('/api/users', async (req, res) => {

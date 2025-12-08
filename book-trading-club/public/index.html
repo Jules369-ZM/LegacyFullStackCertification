@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Trading Club</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Book Trading Club</h1>
+    <nav id="nav">
+      <a href="/">Home</a>
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+      <a href="/logout">Logout</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="books">
+      <h2>All Books Available for Trade</h2>
+      <div id="booksList"></div>
+    </section>
+
+    <section id="myBooks" style="display: none;">
+      <h2>My Books</h2>
+      <button id="addBookBtn">Add New Book</button>
+      <div id="myBooksList"></div>
+    </section>
+
+    <section id="trades" style="display: none;">
+      <h2>My Trade Requests</h2>
+      <div id="tradesList"></div>
+    </section>
+
+    <section id="addBook" style="display: none;">
+      <h2>Add New Book</h2>
+      <form id="bookForm">
+        <input type="text" id="bookTitle" placeholder="Book Title" required>
+        <input type="text" id="bookAuthor" placeholder="Author" required>
+        <input type="text" id="bookISBN" placeholder="ISBN (optional)">
+        <input type="url" id="bookImage" placeholder="Cover Image URL (optional)">
+        <button type="submit">Add Book</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

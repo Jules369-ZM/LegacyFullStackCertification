@@ -46,6 +46,15 @@ This directory contains implementations of the Back End Development and APIs cer
   - Metadata extraction (name, type, size)
   - File storage in uploads directory
 
+### 6. Image Search Abstraction Layer
+- **Routes**: `GET /api/imagesearch/:searchterm`, `GET /api/latest/imagesearch`
+- **Description**: Searches for images using Bing Image Search API and tracks search history
+- **Features**:
+  - Image search with customizable result count
+  - Search history storage in MongoDB
+  - Returns image URLs, thumbnails, and metadata
+  - Latest searches endpoint
+
 ## Technologies Used
 
 - **Node.js**: JavaScript runtime environment
@@ -63,10 +72,11 @@ This directory contains implementations of the Back End Development and APIs cer
    npm install
    ```
 
-2. **Environment Variables (for Exercise Tracker):**
+2. **Environment Variables:**
    Create a `.env` file with:
    ```
    MONGO_URI=mongodb://localhost:27017/freecodecamp
+   BING_API_KEY=your_bing_api_key_here
    PORT=3000
    ```
 
@@ -102,6 +112,10 @@ This directory contains implementations of the Back End Development and APIs cer
 ### File Metadata
 - `POST /api/fileanalyse` - Upload file and get metadata
 
+### Image Search Abstraction Layer
+- `GET /api/imagesearch/:searchterm?offset=10` - Search for images and return results
+- `GET /api/latest/imagesearch` - Get latest 10 search queries
+
 ## FreeCodeCamp Certification
 
 These implementations fulfill the requirements for the Back End Development and APIs certification from FreeCodeCamp.
@@ -113,5 +127,6 @@ These implementations fulfill the requirements for the Back End Development and 
 - ✅ URL Shortener Microservice - Completed
 - ✅ Exercise Tracker - Completed
 - ✅ File Metadata Microservice - Completed
+- ✅ Image Search Abstraction Layer - Completed
 
-**All 5 Back End APIs projects completed!** 🎉
+**All 6 Back End APIs projects completed!** 🎉

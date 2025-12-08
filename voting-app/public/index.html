@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voting App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Voting App</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+      <a href="/logout">Logout</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="polls">
+      <h2>Polls</h2>
+      <button id="createPollBtn">Create New Poll</button>
+      <div id="pollsList"></div>
+    </section>
+
+    <section id="createPoll" style="display: none;">
+      <h2>Create Poll</h2>
+      <form id="pollForm">
+        <input type="text" id="pollTitle" placeholder="Poll Title" required>
+        <div id="options">
+          <input type="text" class="option" placeholder="Option 1" required>
+          <input type="text" class="option" placeholder="Option 2" required>
+        </div>
+        <button type="button" id="addOption">Add Option</button>
+        <button type="submit">Create Poll</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
