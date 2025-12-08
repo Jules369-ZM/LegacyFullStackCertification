@@ -106,8 +106,35 @@ app.get('/api/:date?', (req, res) => {
 });
 
 // ==================== URL SHORTENER MICROSERVICE ====================
+const dns = require('dns');
+const url = require('url');
+
 const urlDatabase = {};
 let urlCounter = 1;
+
+// Helper function to validate URL with DNS lookup
+function validateUrl(originalUrl, callback) {
+  // Parse the URL to extract hostname
+  let parsedUrl;
+  try {
+    parsedUrl = url.parse(originalUrl);
+  } catch (err) {
+    return callback(new Error('Invalid URL format'));
+  }
+
+  // Check if hostname exists
+  if (!parsedUrl.hostname) {
+    return callback(new Error('Invalid URL - no hostname'));
+  }
+
+  // Use dns.lookup to verify the domain exists
+  dns.lookup(parsedUrl.hostname, (err) => {
+    if (err) {
+      return callback(new Error('Invalid URL - domain not found'));
+    }
+    callback(null, originalUrl);
+  });
+}
 
 app.post('/api/shorturl', (req, res) => {
   const originalUrl = req.body.url;
@@ -118,27 +145,40 @@ app.post('/api/shorturl', (req, res) => {
     return res.json({ error: 'invalid url' });
   }
 
-  // Check if URL already exists
-  const existingShortUrl = Object.keys(urlDatabase).find(key => urlDatabase[key] === originalUrl);
+  // Validate URL with DNS lookup
+  validateUrl(originalUrl, (err, validUrl) => {
+    if (err) {
+      return res.json({ error: 'invalid url' });
+    }
 
-  if (existingShortUrl) {
-    res.json({
-      original_url: originalUrl,
-      short_url: parseInt(existingShortUrl)
-    });
-  } else {
-    const shortUrl = urlCounter++;
-    urlDatabase[shortUrl] = originalUrl;
+    // Check if URL already exists
+    const existingShortUrl = Object.keys(urlDatabase).find(key => urlDatabase[key] === validUrl);
 
-    res.json({
-      original_url: originalUrl,
-      short_url: shortUrl
-    });
-  }
+    if (existingShortUrl) {
+      res.json({
+        original_url: validUrl,
+        short_url: parseInt(existingShortUrl)
+      });
+    } else {
+      const shortUrl = urlCounter++;
+      urlDatabase[shortUrl] = validUrl;
+
+      res.json({
+        original_url: validUrl,
+        short_url: shortUrl
+      });
+    }
+  });
 });
 
 app.get('/api/shorturl/:short_url', (req, res) => {
   const shortUrl = req.params.short_url;
+
+  // Validate that short_url is a number
+  if (!/^\d+$/.test(shortUrl)) {
+    return res.json({ error: 'Wrong format' });
+  }
+
   const originalUrl = urlDatabase[shortUrl];
 
   if (originalUrl) {
@@ -343,7 +383,7 @@ app.post('/api/fileanalyse', upload.single('upfile'), (req, res) => {
 });
 
 // Listen on port
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on http://0.0.0.0:${PORT}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
