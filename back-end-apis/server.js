@@ -343,7 +343,7 @@ app.post('/api/fileanalyse', upload.single('upfile'), (req, res) => {
 });
 
 // Listen on port
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on http://0.0.0.0:${PORT}`);
 });

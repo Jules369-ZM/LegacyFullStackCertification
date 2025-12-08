@@ -15,15 +15,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Portfolio Server"
+args = "Back End APIs"
 
 [[workflows.workflow]]
-name = "Portfolio Server"
+name = "Back End APIs"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm start"
+args = "cd back-end-apis && npm start"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -33,10 +33,6 @@ outputType = "webview"
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 42641
-externalPort = 3000
-
 [deployment]
 deploymentTarget = "autoscale"
-run = ["node", "server.js"]
+run = ["node", "back-end-apis/server.js"]

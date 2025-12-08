@@ -4,11 +4,12 @@
 This is a portfolio website showcasing a comprehensive collection of FreeCodeCamp Legacy Full Stack Development Certification projects by Julius Martin Banda. The portfolio serves as a central hub to access and explore multiple projects across different domains including web design, front-end libraries, data visualization, back-end APIs, security, quality assurance, Python programming, databases, and machine learning.
 
 ## Current State
-The portfolio is fully functional and running in the Replit environment with:
-- A responsive landing page that showcases all certification projects
-- Express.js server serving static content on port 5000
+Currently running the **Back End APIs** project in the Replit environment with:
+- Express.js server running on port 5000
+- Multiple API microservices: Timestamp, Request Header Parser, URL Shortener, Exercise Tracker, File Metadata
 - Proper deployment configuration for production use
-- Clean, modern UI with gradient design
+
+The portfolio landing page is also available (index.html, styles.css, server.js in root) but the Back End APIs workflow is currently active.
 
 ## Project Architecture
 
