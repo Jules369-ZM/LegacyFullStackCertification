@@ -1,0 +1,134 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
+}
+
+#main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+
+#title {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+#description {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  color: #7f8c8d;
+}
+
+#chart-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 1300px;
+  overflow-x: auto;
+}
+
+#chart {
+  width: 100%;
+  min-width: 1200px;
+  height: 600px;
+}
+
+.county {
+  stroke: #fff;
+  stroke-width: 0.5px;
+  transition: stroke-width 0.2s ease;
+}
+
+.county:hover {
+  stroke-width: 1px;
+  cursor: pointer;
+}
+
+.tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  max-width: 200px;
+}
+
+.tooltip.show {
+  opacity: 1;
+}
+
+#legend {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+#legend svg {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.legend-axis text {
+  font-size: 12px;
+  fill: #333;
+}
+
+@media (max-width: 768px) {
+  #title {
+    font-size: 2rem;
+  }
+
+  #description {
+    font-size: 1rem;
+  }
+
+  #chart-container {
+    padding: 15px;
+  }
+
+  #chart {
+    height: 500px;
+    min-width: 1000px;
+  }
+}
+
+@media (max-width: 480px) {
+  #main {
+    padding: 15px;
+  }
+
+  #title {
+    font-size: 1.8rem;
+  }
+
+  #chart {
+    height: 400px;
+    min-width: 800px;
+  }
+
+  .county {
+    stroke-width: 0.25px;
+  }
+
+  .county:hover {
+    stroke-width: 0.5px;
+  }
+}

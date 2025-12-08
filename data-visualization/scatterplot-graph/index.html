@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D3 Scatterplot Graph</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="main">
+    <h1 id="title">Doping in Professional Bicycle Racing</h1>
+    <div id="description">
+      35 Fastest times up Alpe d'Huez - normalized to 13.8km distance
+    </div>
+    <div id="chart-container">
+      <svg id="chart"></svg>
+    </div>
+    <div id="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #ff6b6b;"></div>
+        <span>Riders with doping allegations</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #4ecdc4;"></div>
+        <span>No doping allegations</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

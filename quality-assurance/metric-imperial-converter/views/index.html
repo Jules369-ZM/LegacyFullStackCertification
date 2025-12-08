@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metric-Imperial Converter</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="main">
+    <h1>Metric-Imperial Converter</h1>
+    <div id="description">
+      Convert between metric and imperial units
+    </div>
+
+    <div class="converter-section">
+      <h2>Unit Conversion</h2>
+      <form id="converter-form">
+        <input type="text" id="input" placeholder="Enter value and unit (e.g., 10L, 5kg, 100mi)">
+        <button type="submit">Convert</button>
+      </form>
+
+      <div id="result"></div>
+    </div>
+
+    <div class="info-section">
+      <h3>Supported Conversions</h3>
+      <ul>
+        <li>gal (gallons) ↔ L (liters)</li>
+        <li>lbs (pounds) ↔ kg (kilograms)</li>
+        <li>mi (miles) ↔ km (kilometers)</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>

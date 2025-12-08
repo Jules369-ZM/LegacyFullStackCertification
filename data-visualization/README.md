@@ -16,19 +16,39 @@ This directory contains implementations of the Data Visualization certification 
 
 ### 2. Scatterplot Graph (`scatterplot-graph/`)
 - **Description**: Scatter plot showing doping allegations in professional cycling
-- **Features**: Coming soon...
+- **Data Source**: FreeCodeCamp cyclist data
+- **Features**:
+  - Interactive dots with hover tooltips
+  - Time vs. ranking scatter plot
+  - Color-coded doping allegations
+  - Professional styling with legend
 
 ### 3. Heat Map (`heat-map/`)
 - **Description**: Heat map visualization of global temperature data
-- **Features**: Coming soon...
+- **Data Source**: FreeCodeCamp global temperature dataset
+- **Features**:
+  - Monthly temperature variance by year
+  - Color-coded temperature differences
+  - Interactive tooltips
+  - Gradient legend
 
-### 4. Choropleth Map (`choropleth-map/`)
+### 4. Force Directed Graph (`force-directed-graph/`)
+- **Description**: Force-directed graph showing movie sales connections
+- **Data Source**: FreeCodeCamp movie data
+- **Features**:
+  - Interactive draggable nodes
+  - Genre-based coloring
+  - Force simulation physics
+  - Hover tooltips with movie details
+
+### 5. Choropleth Map (`map-data-globe/`)
 - **Description**: Choropleth map showing US education attainment by county
-- **Features**: Coming soon...
-
-### 5. Treemap Diagram (`treemap-diagram/`)
-- **Description**: Treemap showing video game sales data
-- **Features**: Coming soon...
+- **Data Source**: FreeCodeCamp education dataset
+- **Features**:
+  - County-level education data visualization
+  - Color-coded bachelor's degree percentages
+  - Interactive county tooltips
+  - Professional legend
 
 ## Technologies Used
 
@@ -48,7 +68,7 @@ These implementations fulfill the requirements for the Data Visualization certif
 ## Project Status
 
 - ✅ Bar Chart - Completed
-- 🔄 Scatterplot Graph - In Progress
-- ⏳ Heat Map - Planned
-- ⏳ Choropleth Map - Planned
-- ⏳ Treemap Diagram - Planned
+- ✅ Scatterplot Graph - Completed
+- ✅ Heat Map - Completed
+- ✅ Force Directed Graph - Completed
+- ✅ Choropleth Map - Completed
