@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metric-Imperial Converter</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Metric-Imperial Converter</h1>
+    <p>Convert between metric and imperial units</p>
+
+    <div class="converter">
+      <form id="convert-form">
+        <label for="input">Enter value and unit:</label>
+        <input
+          type="text"
+          id="input"
+          placeholder="e.g. 10 L, 5 kg, 100 mi"
+          required
+        >
+        <button type="submit">Convert</button>
+      </form>
+
+      <div id="result" class="result hidden">
+        <h3>Conversion Result:</h3>
+        <div id="output"></div>
+      </div>
+
+      <div class="examples">
+        <h3>Examples:</h3>
+        <ul>
+          <li><code>10 L</code> → liters to gallons</li>
+          <li><code>5 kg</code> → kilograms to pounds</li>
+          <li><code>100 mi</code> → miles to kilometers</li>
+          <li><code>32 gal</code> → gallons to liters</li>
+          <li><code>50 lbs</code> → pounds to kilograms</li>
+          <li><code>10 km</code> → kilometers to miles</li>
+        </ul>
+      </div>
+
+      <div class="units">
+        <h3>Supported Units:</h3>
+        <div class="unit-grid">
+          <div class="unit-group">
+            <h4>Volume</h4>
+            <ul>
+              <li><strong>L</strong> - Liters</li>
+              <li><strong>gal</strong> - Gallons</li>
+            </ul>
+          </div>
+          <div class="unit-group">
+            <h4>Distance</h4>
+            <ul>
+              <li><strong>km</strong> - Kilometers</li>
+              <li><strong>mi</strong> - Miles</li>
+            </ul>
+          </div>
+          <div class="unit-group">
+            <h4>Weight</h4>
+            <ul>
+              <li><strong>kg</strong> - Kilograms</li>
+              <li><strong>lbs</strong> - Pounds</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('convert-form');
+    const input = document.getElementById('input');
+    const result = document.getElementById('result');
+    const output = document.getElementById('output');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const value = input.value.trim();
+      if (!value) return;
+
+      try {
+        const response = await fetch('/api/convert', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ input: value })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          output.innerHTML = `<span class="error">${data.error}</span>`;
+        } else {
+          output.innerHTML = `
+            <div class="conversion">
+              <div class="input">${data.initNum} ${data.initUnit}</div>
+              <div class="arrow">→</div>
+              <div class="output">${data.returnNum} ${data.returnUnit}</div>
+            </div>
+            <div class="string">${data.string}</div>
+          `;
+        }
+
+        result.classList.remove('hidden');
+      } catch (error) {
+        output.innerHTML = '<span class="error">Error converting value</span>';
+        result.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
