@@ -130,13 +130,13 @@ app.get('/api/convert', (req, res) => {
   const input = req.query.input;
 
   if (!input) {
-    return res.json('invalid number and unit');
+    return res.send('invalid number and unit');
   }
 
   const result = convert(input.trim());
 
   if (typeof result === 'string') {
-    return res.json(result);
+    return res.send(result);
   }
 
   res.json(result);
@@ -147,13 +147,13 @@ app.post('/api/convert', (req, res) => {
   const input = req.body.input;
 
   if (!input) {
-    return res.json('invalid number and unit');
+    return res.send('invalid number and unit');
   }
 
   const result = convert(input.trim());
 
   if (typeof result === 'string') {
-    return res.json(result);
+    return res.send(result);
   }
 
   res.json(result);
