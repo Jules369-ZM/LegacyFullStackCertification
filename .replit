@@ -35,17 +35,9 @@ args = "cd back-end-apis && npm start"
 waitForPort = 3000
 
 [[workflows.workflow]]
-name = "metric-imperial-converter"
-mode = "parallel"
-author = 51049604
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd information-security/metric-imperial-converter/ && npm start"
-
-[[workflows.workflow]]
 name = "Metric Imperial Converter"
 author = "agent"
+mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
@@ -54,6 +46,15 @@ waitForPort = 3000
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow]]
+name = "Metric Imperial Convert"
+mode = "sequential"
+author = 51049604
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd information-security/metric-imperial-converter && npm start"
 
 [[ports]]
 localPort = 3000
