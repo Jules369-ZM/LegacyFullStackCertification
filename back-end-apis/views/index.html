@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Back End APIs - FreeCodeCamp</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>FreeCodeCamp Back End Development and APIs</h1>
+
+    <div class="projects">
+      <div class="project">
+        <h2>Timestamp Microservice</h2>
+        <p>Get timestamp information in Unix and UTC formats.</p>
+        <div class="examples">
+          <p><strong>Examples:</strong></p>
+          <ul>
+            <li><a href="/api/timestamp">/api/timestamp</a></li>
+            <li><a href="/api/timestamp/2023-01-01">/api/timestamp/2023-01-01</a></li>
+            <li><a href="/api/timestamp/1672531200000">/api/timestamp/1672531200000</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="project">
+        <h2>Request Header Parser Microservice</h2>
+        <p>Get information about your request headers.</p>
+        <div class="examples">
+          <p><strong>Example:</strong></p>
+          <ul>
+            <li><a href="/api/whoami">/api/whoami</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="project">
+        <h2>URL Shortener Microservice</h2>
+        <p>Create short URLs and redirect to original URLs.</p>
+        <div class="examples">
+          <p><strong>Examples:</strong></p>
+          <ul>
+            <li><code>POST /api/shorturl</code> with body <code>{"url": "https://example.com"}</code></li>
+            <li><a href="/api/shorturl/1">/api/shorturl/1</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="project">
+        <h2>Exercise Tracker</h2>
+        <p>Track your exercise activities (requires MongoDB).</p>
+        <div class="examples">
+          <p><strong>Examples:</strong></p>
+          <ul>
+            <li><code>POST /api/users</code> with body <code>{"username": "testuser"}</code></li>
+            <li><code>GET /api/users</code></li>
+            <li><code>POST /api/users/{userId}/exercises</code></li>
+            <li><code>GET /api/users/{userId}/logs</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="project">
+        <h2>File Metadata Microservice</h2>
+        <p>Upload files and get metadata information.</p>
+        <div class="examples">
+          <p><strong>Example:</strong></p>
+          <ul>
+            <li><code>POST /api/fileanalyse</code> with file upload</li>
+          </ul>
+        </div>
+        <form action="/api/fileanalyse" method="post" enctype="multipart/form-data">
+          <label for="upfile" style="display: block; margin-bottom: 5px; font-weight: bold;">Select a file to upload:</label>
+          <input type="file" id="upfile" name="upfile" required>
+          <button type="submit">Upload</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Built with Node.js, Express.js, and MongoDB</p>
+      <p>Created by Julius Martin Banda</p>
+    </div>
+  </div>
+</body>
+</html>
