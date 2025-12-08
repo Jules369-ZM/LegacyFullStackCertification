@@ -34,10 +34,35 @@ app.get('/', (req, res) => {
 
 // ==================== REQUEST HEADER PARSER MICROSERVICE ====================
 app.get('/api/whoami', (req, res) => {
+  // Get IP address - try multiple methods for different hosting environments
+  let ipaddress = req.headers['x-forwarded-for'] ||
+                  req.headers['x-real-ip'] ||
+                  req.connection.remoteAddress ||
+                  req.socket.remoteAddress ||
+                  req.ip ||
+                  '127.0.0.1';
+
+  // Handle IPv6 localhost
+  if (ipaddress === '::1') {
+    ipaddress = '127.0.0.1';
+  }
+
+  // Handle IPv6 with brackets
+  if (ipaddress.includes('::ffff:')) {
+    ipaddress = ipaddress.split('::ffff:')[1];
+  }
+
+  // Parse Accept-Language header
+  const language = req.headers['accept-language'] ?
+    req.headers['accept-language'].split(',')[0] : 'en-US';
+
+  // Parse User-Agent header
+  const software = req.headers['user-agent'] || 'Unknown';
+
   res.json({
-    ipaddress: req.ip || req.connection.remoteAddress || req.socket.remoteAddress,
-    language: req.headers['accept-language'],
-    software: req.headers['user-agent']
+    ipaddress: ipaddress,
+    language: language,
+    software: software
   });
 });
 
