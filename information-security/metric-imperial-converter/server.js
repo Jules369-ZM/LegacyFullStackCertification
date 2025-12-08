@@ -34,15 +34,26 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-// Conversion logic
+// Conversion logic - exact FreeCodeCamp specifications
 const conversions = {
-  gal: { to: 'L', factor: 3.78541, unit: 'gallons', returnUnit: 'liters' },
-  l: { to: 'gal', factor: 1/3.78541, unit: 'liters', returnUnit: 'gallons' },
-  L: { to: 'gal', factor: 1/3.78541, unit: 'liters', returnUnit: 'gallons' },
-  mi: { to: 'km', factor: 1.60934, unit: 'miles', returnUnit: 'kilometers' },
-  km: { to: 'mi', factor: 1/1.60934, unit: 'kilometers', returnUnit: 'miles' },
-  lbs: { to: 'kg', factor: 0.453592, unit: 'pounds', returnUnit: 'kilograms' },
-  kg: { to: 'lbs', factor: 1/0.453592, unit: 'kilograms', returnUnit: 'pounds' }
+  gal: { to: 'L', factor: 3.78541, unitString: 'gallons', returnUnitString: 'liters' },
+  l: { to: 'L', factor: 1/3.78541, unitString: 'liters', returnUnitString: 'liters' },
+  L: { to: 'gal', factor: 1/3.78541, unitString: 'liters', returnUnitString: 'gallons' },
+  mi: { to: 'km', factor: 1.60934, unitString: 'miles', returnUnitString: 'kilometers' },
+  km: { to: 'mi', factor: 1/1.60934, unitString: 'kilometers', returnUnitString: 'miles' },
+  lbs: { to: 'kg', factor: 0.453592, unitString: 'pounds', returnUnitString: 'kilograms' },
+  kg: { to: 'lbs', factor: 1/0.453592, unitString: 'kilograms', returnUnitString: 'pounds' }
+};
+
+// Valid units mapping
+const validUnits = {
+  'gal': 'gal',
+  'l': 'L',    // lowercase l should return uppercase L
+  'L': 'L',    // uppercase L stays uppercase L
+  'mi': 'mi',
+  'km': 'km',
+  'lbs': 'lbs',
+  'kg': 'kg'
 };
 
 // Function to parse number (handles fractions, decimals, etc.)
@@ -73,7 +84,7 @@ function convert(input) {
   const firstLetterIndex = input.search(/[a-zA-Z]/);
 
   if (firstLetterIndex === -1) {
-    return { error: 'invalid number and unit' };
+    return 'invalid number and unit';
   }
 
   const numberPart = input.substring(0, firstLetterIndex).trim();
@@ -82,29 +93,35 @@ function convert(input) {
   // Parse number
   const initNum = parseNumber(numberPart);
   if (isNaN(initNum)) {
-    return { error: 'invalid number' };
+    // Check if it's invalid unit by trying to parse unit first
+    const lowerUnit = unitPart.toLowerCase();
+    if (lowerUnit === 'l') lowerUnit = 'L';
+    if (!validUnits[lowerUnit]) {
+      return 'invalid number and unit';
+    }
+    return 'invalid number';
   }
 
-  // Parse unit (preserve case for L)
-  let initUnit = unitPart.toLowerCase();
-  if (unitPart.toUpperCase() === 'L') {
-    initUnit = 'L';
+  // Parse and validate unit
+  const lowerUnit = unitPart.toLowerCase();
+  const normalizedUnit = lowerUnit === 'l' ? 'L' : lowerUnit;
+
+  if (!validUnits[normalizedUnit]) {
+    return 'invalid unit';
   }
 
-  // Check if unit is valid
-  if (!conversions[initUnit]) {
-    return { error: 'invalid unit' };
-  }
+  const initUnit = validUnits[normalizedUnit]; // This will be 'L' for both 'l' and 'L' inputs
+  const returnUnit = conversions[normalizedUnit].to;
 
-  const conversion = conversions[initUnit];
+  const conversion = conversions[normalizedUnit];
   const returnNum = parseFloat((initNum * conversion.factor).toFixed(5));
 
   return {
     initNum: initNum,
-    initUnit: initUnit,
+    initUnit: initUnit.toLowerCase() === 'l' ? 'L' : initUnit.toLowerCase(), // initUnit should be lowercase except L
     returnNum: returnNum,
-    returnUnit: conversion.to,
-    string: `${initNum} ${conversion.unit} converts to ${returnNum} ${conversion.returnUnit}`
+    returnUnit: returnUnit,
+    string: `${initNum} ${conversion.unitString} converts to ${returnNum} ${conversion.returnUnitString}`
   };
 }
 
@@ -113,10 +130,15 @@ app.get('/api/convert', (req, res) => {
   const input = req.query.input;
 
   if (!input) {
-    return res.json({ error: 'invalid number and unit' });
+    return res.json('invalid number and unit');
   }
 
   const result = convert(input.trim());
+
+  if (typeof result === 'string') {
+    return res.json(result);
+  }
+
   res.json(result);
 });
 
@@ -125,10 +147,15 @@ app.post('/api/convert', (req, res) => {
   const input = req.body.input;
 
   if (!input) {
-    return res.json({ error: 'invalid number and unit' });
+    return res.json('invalid number and unit');
   }
 
   const result = convert(input.trim());
+
+  if (typeof result === 'string') {
+    return res.json(result);
+  }
+
   res.json(result);
 });
 
