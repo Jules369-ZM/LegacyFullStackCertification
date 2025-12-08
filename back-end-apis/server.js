@@ -189,19 +189,11 @@ app.get('/api/shorturl/:short_url', (req, res) => {
 });
 
 // ==================== EXERCISE TRACKER ====================
-const exerciseSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  description: { type: String, required: true },
-  duration: { type: Number, required: true },
-  date: { type: Date, default: Date.now }
-});
-
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true }
-});
-
-const Exercise = mongoose.model('Exercise', exerciseSchema);
-const User = mongoose.model('User', userSchema);
+// Using in-memory storage for FreeCodeCamp compatibility
+const users = [];
+const exercises = [];
+let userIdCounter = 1;
+let exerciseIdCounter = 1;
 
 // ==================== IMAGE SEARCH ABSTRACTION LAYER ====================
 const searchSchema = new mongoose.Schema({
@@ -262,107 +254,115 @@ app.get('/api/latest/imagesearch', async (req, res) => {
 });
 
 // Create new user
-app.post('/api/users', async (req, res) => {
-  try {
-    const { username } = req.body;
-    const user = new User({ username });
-    const savedUser = await user.save();
-    res.json({
-      username: savedUser.username,
-      _id: savedUser._id
-    });
-  } catch (error) {
-    if (error.code === 11000) {
-      res.json({ error: 'Username already taken' });
-    } else {
-      res.json({ error: error.message });
-    }
+app.post('/api/users', (req, res) => {
+  const { username } = req.body;
+
+  // Check if username already exists
+  const existingUser = users.find(user => user.username === username);
+  if (existingUser) {
+    return res.json({ error: 'Username already taken' });
   }
+
+  // Create new user
+  const newUser = {
+    username: username,
+    _id: userIdCounter.toString()
+  };
+
+  users.push(newUser);
+  userIdCounter++;
+
+  res.json({
+    username: newUser.username,
+    _id: newUser._id
+  });
 });
 
 // Get all users
-app.get('/api/users', async (req, res) => {
-  try {
-    const users = await User.find({}, 'username _id');
-    res.json(users);
-  } catch (error) {
-    res.json([]);
-  }
+app.get('/api/users', (req, res) => {
+  res.json(users);
 });
 
 // Add exercise
-app.post('/api/users/:_id/exercises', async (req, res) => {
-  try {
-    const { _id } = req.params;
-    const { description, duration, date } = req.body;
+app.post('/api/users/:_id/exercises', (req, res) => {
+  const { _id } = req.params;
+  const { description, duration, date } = req.body;
 
-    const user = await User.findById(_id);
-    if (!user) {
-      return res.json({ error: 'User not found' });
-    }
-
-    const exercise = new Exercise({
-      username: user.username,
-      description,
-      duration: parseInt(duration),
-      date: date ? new Date(date) : new Date()
-    });
-
-    const savedExercise = await exercise.save();
-
-    res.json({
-      username: user.username,
-      description: savedExercise.description,
-      duration: savedExercise.duration,
-      date: savedExercise.date.toDateString(),
-      _id: user._id
-    });
-  } catch (error) {
-    res.json({ error: error.message });
+  // Find user
+  const user = users.find(u => u._id === _id);
+  if (!user) {
+    return res.json({ error: 'User not found' });
   }
+
+  // Create exercise
+  const exerciseDate = date ? new Date(date) : new Date();
+  const newExercise = {
+    _id: exerciseIdCounter.toString(),
+    username: user.username,
+    description: description,
+    duration: parseInt(duration),
+    date: exerciseDate,
+    userId: _id
+  };
+
+  exercises.push(newExercise);
+  exerciseIdCounter++;
+
+  res.json({
+    username: user.username,
+    description: newExercise.description,
+    duration: newExercise.duration,
+    date: newExercise.date.toDateString(),
+    _id: user._id
+  });
 });
 
 // Get user's exercise log
-app.get('/api/users/:_id/logs', async (req, res) => {
-  try {
-    const { _id } = req.params;
-    const { from, to, limit } = req.query;
+app.get('/api/users/:_id/logs', (req, res) => {
+  const { _id } = req.params;
+  const { from, to, limit } = req.query;
 
-    const user = await User.findById(_id);
-    if (!user) {
-      return res.json({ error: 'User not found' });
-    }
-
-    let query = { username: user.username };
-
-    if (from || to) {
-      query.date = {};
-      if (from) query.date.$gte = new Date(from);
-      if (to) query.date.$lte = new Date(to);
-    }
-
-    let exercises = Exercise.find(query).select('description duration date');
-
-    if (limit) {
-      exercises = exercises.limit(parseInt(limit));
-    }
-
-    const exerciseList = await exercises;
-    const log = exerciseList.map(ex => ({
-      description: ex.description,
-      duration: ex.duration,
-      date: ex.date.toDateString()
-    }));
-
-    res.json({
-      username: user.username,
-      count: log.length,
-      _id: user._id,
-      log: log
-    });
-  } catch (error) {
-    res.json({ error: error.message });
+  // Find user
+  const user = users.find(u => u._id === _id);
+  if (!user) {
+    return res.json({ error: 'User not found' });
   }
+
+  // Get user's exercises
+  let userExercises = exercises.filter(ex => ex.userId === _id);
+
+  // Apply date filters
+  if (from) {
+    const fromDate = new Date(from);
+    userExercises = userExercises.filter(ex => ex.date >= fromDate);
+  }
+
+  if (to) {
+    const toDate = new Date(to);
+    userExercises = userExercises.filter(ex => ex.date <= toDate);
+  }
+
+  // Sort by date (most recent first)
+  userExercises.sort((a, b) => b.date - a.date);
+
+  // Apply limit
+  if (limit) {
+    userExercises = userExercises.slice(0, parseInt(limit));
+  }
+
+  // Format log
+  const log = userExercises.map(ex => ({
+    description: ex.description,
+    duration: ex.duration,
+    date: ex.date.toDateString()
+  }));
+
+  res.json({
+    username: user.username,
+    count: log.length,
+    _id: user._id,
+    log: log
+  });
 });
 
 // ==================== FILE METADATA MICROSERVICE ====================
