@@ -1,0 +1,16 @@
+{
+  "name": "legacy-fullstack-portfolio",
+  "version": "1.0.0",
+  "description": "Portfolio showcasing FreeCodeCamp Legacy Full Stack Development Certification projects",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["portfolio", "freecodecamp", "fullstack"],
+  "author": "Julius Martin Banda",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
