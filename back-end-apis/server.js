@@ -34,36 +34,47 @@ app.get('/', (req, res) => {
 
 // ==================== REQUEST HEADER PARSER MICROSERVICE ====================
 app.get('/api/whoami', (req, res) => {
-  // Get IP address - try multiple methods for different hosting environments
-  let ipaddress = req.headers['x-forwarded-for'] ||
+  // Get IP address - comprehensive method for all hosting environments
+  let ipaddress = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                   req.headers['x-real-ip'] ||
-                  req.connection.remoteAddress ||
-                  req.socket.remoteAddress ||
+                  req.headers['x-client-ip'] ||
+                  req.headers['cf-connecting-ip'] ||
+                  req.connection?.remoteAddress ||
+                  req.socket?.remoteAddress ||
                   req.ip ||
                   '127.0.0.1';
 
-  // Handle IPv6 localhost
-  if (ipaddress === '::1') {
+  // Clean up IP address
+  if (ipaddress === '::1' || ipaddress === '::ffff:127.0.0.1') {
     ipaddress = '127.0.0.1';
   }
-
-  // Handle IPv6 with brackets
-  if (ipaddress.includes('::ffff:')) {
-    ipaddress = ipaddress.split('::ffff:')[1];
+  if (ipaddress.startsWith('::ffff:')) {
+    ipaddress = ipaddress.substring(7);
   }
 
-  // Parse Accept-Language header
-  const language = req.headers['accept-language'] ?
-    req.headers['accept-language'].split(',')[0] : 'en-US';
+  // Get preferred language from Accept-Language header
+  let language = 'en-US'; // default
+  if (req.headers['accept-language']) {
+    // Parse Accept-Language header (e.g., "en-US,en;q=0.9")
+    const acceptLang = req.headers['accept-language'].split(',')[0];
+    if (acceptLang) {
+      language = acceptLang.split(';')[0].trim();
+    }
+  }
 
-  // Parse User-Agent header
-  const software = req.headers['user-agent'] || 'Unknown';
+  // Get software (User-Agent)
+  const software = req.headers['user-agent'] ||
+                   req.headers['User-Agent'] ||
+                   'Unknown';
 
-  res.json({
-    ipaddress: ipaddress,
-    language: language,
-    software: software
-  });
+  // Ensure all fields are present and valid
+  const result = {
+    ipaddress: ipaddress || '127.0.0.1',
+    language: language || 'en-US',
+    software: software || 'Unknown'
+  };
+
+  res.json(result);
 });
 
 // ==================== TIMESTAMP MICROSERVICE ====================
