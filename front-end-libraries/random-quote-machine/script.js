@@ -95,24 +95,27 @@ class QuoteMachine extends React.Component {
     const { currentQuote, currentColor } = this.state;
 
     return (
-      <div className="quote-container" style={{ borderColor: currentColor }}>
-        <div className="quote-text" style={{ color: currentColor }}>
+      <div id="quote-box" className="quote-container" style={{ borderColor: currentColor }}>
+        <div id="text" className="quote-text" style={{ color: currentColor }}>
           {currentQuote.text}
         </div>
-        <div className="quote-author" style={{ color: currentColor }}>
+        <div id="author" className="quote-author" style={{ color: currentColor }}>
           - {currentQuote.author}
         </div>
         <div className="button-container">
-          <button
+          <a
+            id="tweet-quote"
             className="btn btn-secondary"
             onClick={this.tweetQuote}
             style={{ backgroundColor: currentColor }}
             title="Tweet this quote"
+            target="_blank"
           >
             <i className="fab fa-twitter"></i>
             Tweet
-          </button>
+          </a>
           <button
+            id="new-quote"
             className="btn btn-primary"
             onClick={this.getRandomQuote}
             style={{ backgroundColor: currentColor }}
