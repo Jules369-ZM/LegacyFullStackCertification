@@ -286,7 +286,7 @@ app.get('/api/users', async (req, res) => {
     const users = await User.find({}, 'username _id');
     res.json(users);
   } catch (error) {
-    res.json({ error: error.message });
+    res.json([]);
   }
 });
 
