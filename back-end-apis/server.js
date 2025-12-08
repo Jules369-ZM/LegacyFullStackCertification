@@ -77,181 +77,12 @@ app.get('/api/whoami', (req, res) => {
   res.json(result);
 });
 
-// ==================== TIMESTAMP MICROSERVICE ====================
-app.get('/api/:date?', (req, res) => {
-  const dateParam = req.params.date;
-  let date;
-
-  // If no date provided, use current time
-  if (!dateParam) {
-    date = new Date();
-  } else {
-    // Check if it's a unix timestamp (all digits)
-    if (/^\d+$/.test(dateParam)) {
-      date = new Date(parseInt(dateParam));
-    } else {
-      date = new Date(dateParam);
-    }
-  }
-
-  // Check if date is invalid
-  if (dateParam && isNaN(date.getTime())) {
-    return res.json({ error: 'Invalid Date' });
-  }
-
-  res.json({
-    unix: date.getTime(),
-    utc: date.toUTCString()
-  });
-});
-
-// ==================== URL SHORTENER MICROSERVICE ====================
-const dns = require('dns');
-const url = require('url');
-
-const urlDatabase = {};
-let urlCounter = 1;
-
-// Helper function to validate URL with DNS lookup
-function validateUrl(originalUrl, callback) {
-  // Parse the URL to extract hostname
-  let parsedUrl;
-  try {
-    parsedUrl = url.parse(originalUrl);
-  } catch (err) {
-    return callback(new Error('Invalid URL format'));
-  }
-
-  // Check if hostname exists
-  if (!parsedUrl.hostname) {
-    return callback(new Error('Invalid URL - no hostname'));
-  }
-
-  // Use dns.lookup to verify the domain exists
-  dns.lookup(parsedUrl.hostname, (err) => {
-    if (err) {
-      return callback(new Error('Invalid URL - domain not found'));
-    }
-    callback(null, originalUrl);
-  });
-}
-
-app.post('/api/shorturl', (req, res) => {
-  const originalUrl = req.body.url;
-
-  // Basic URL validation
-  const urlRegex = /^https?:\/\/.+/;
-  if (!urlRegex.test(originalUrl)) {
-    return res.json({ error: 'invalid url' });
-  }
-
-  // Validate URL with DNS lookup
-  validateUrl(originalUrl, (err, validUrl) => {
-    if (err) {
-      return res.json({ error: 'invalid url' });
-    }
-
-    // Check if URL already exists
-    const existingShortUrl = Object.keys(urlDatabase).find(key => urlDatabase[key] === validUrl);
-
-    if (existingShortUrl) {
-      res.json({
-        original_url: validUrl,
-        short_url: parseInt(existingShortUrl)
-      });
-    } else {
-      const shortUrl = urlCounter++;
-      urlDatabase[shortUrl] = validUrl;
-
-      res.json({
-        original_url: validUrl,
-        short_url: shortUrl
-      });
-    }
-  });
-});
-
-app.get('/api/shorturl/:short_url', (req, res) => {
-  const shortUrl = req.params.short_url;
-
-  // Validate that short_url is a number
-  if (!/^\d+$/.test(shortUrl)) {
-    return res.json({ error: 'Wrong format' });
-  }
-
-  const originalUrl = urlDatabase[shortUrl];
-
-  if (originalUrl) {
-    res.redirect(originalUrl);
-  } else {
-    res.json({ error: 'No short URL found for the given input' });
-  }
-});
-
 // ==================== EXERCISE TRACKER ====================
 // Using in-memory storage for FreeCodeCamp compatibility
 const users = [];
 const exercises = [];
 let userIdCounter = 1;
 let exerciseIdCounter = 1;
-
-// ==================== IMAGE SEARCH ABSTRACTION LAYER ====================
-const searchSchema = new mongoose.Schema({
-  term: { type: String, required: true },
-  when: { type: Date, default: Date.now }
-});
-
-const Search = mongoose.model('Search', searchSchema);
-
-// Image search endpoint
-app.get('/api/imagesearch/:searchterm', async (req, res) => {
-  try {
-    const searchterm = req.params.searchterm;
-    const offset = parseInt(req.query.offset) || 10;
-
-    // Save search to DB
-    const search = new Search({ term: searchterm });
-    await search.save();
-
-    // Bing Image Search API
-    const apiKey = process.env.BING_API_KEY;
-    if (!apiKey) {
-      return res.json({ error: 'Bing API key not configured' });
-    }
-
-    const response = await axios.get(`https://api.bing.microsoft.com/v7.0/images/search`, {
-      params: {
-        q: searchterm,
-        count: offset,
-        mkt: 'en-US'
-      },
-      headers: {
-        'Ocp-Apim-Subscription-Key': apiKey
-      }
-    });
-
-    const results = response.data.value.map(img => ({
-      url: img.contentUrl,
-      snippet: img.name,
-      thumbnail: img.thumbnailUrl,
-      context: img.hostPageUrl
-    }));
-
-    res.json(results);
-  } catch (error) {
-    res.json({ error: error.message });
-  }
-});
-
-// Latest searches endpoint
-app.get('/api/latest/imagesearch', async (req, res) => {
-  try {
-    const searches = await Search.find({}, 'term when -_id').sort({ when: -1 }).limit(10);
-    res.json(searches);
-  } catch (error) {
-    res.json({ error: error.message });
-  }
-});
 
 // Create new user
 app.post('/api/users', (req, res) => {
@@ -364,6 +195,125 @@ app.get('/api/users/:_id/logs', (req, res) => {
     log: log
   });
 });
+
+// ==================== TIMESTAMP MICROSERVICE ====================
+app.get('/api/:date?', (req, res) => {
+  const dateParam = req.params.date;
+  let date;
+
+  // If no date provided, use current time
+  if (!dateParam) {
+    date = new Date();
+  } else {
+    // Check if it's a unix timestamp (all digits)
+    if (/^\d+$/.test(dateParam)) {
+      date = new Date(parseInt(dateParam));
+    } else {
+      date = new Date(dateParam);
+    }
+  }
+
+  // Check if date is invalid
+  if (dateParam && isNaN(date.getTime())) {
+    return res.json({ error: 'Invalid Date' });
+  }
+
+  res.json({
+    unix: date.getTime(),
+    utc: date.toUTCString()
+  });
+});
+
+// ==================== URL SHORTENER MICROSERVICE ====================
+const dns = require('dns');
+const url = require('url');
+
+const urlDatabase = {};
+let urlCounter = 1;
+
+// Helper function to validate URL with DNS lookup
+function validateUrl(originalUrl, callback) {
+  // Parse the URL to extract hostname
+  let parsedUrl;
+  try {
+    parsedUrl = url.parse(originalUrl);
+  } catch (err) {
+    return callback(new Error('Invalid URL format'));
+  }
+
+  // Check if hostname exists
+  if (!parsedUrl.hostname) {
+    return callback(new Error('Invalid URL - no hostname'));
+  }
+
+  // Use dns.lookup to verify the domain exists
+  dns.lookup(parsedUrl.hostname, (err) => {
+    if (err) {
+      return callback(new Error('Invalid URL - domain not found'));
+    }
+    callback(null, originalUrl);
+  });
+}
+
+app.post('/api/shorturl', (req, res) => {
+  const originalUrl = req.body.url;
+
+  // Basic URL validation
+  const urlRegex = /^https?:\/\/.+/;
+  if (!urlRegex.test(originalUrl)) {
+    return res.json({ error: 'invalid url' });
+  }
+
+  // Validate URL with DNS lookup
+  validateUrl(originalUrl, (err, validUrl) => {
+    if (err) {
+      return res.json({ error: 'invalid url' });
+    }
+
+    // Check if URL already exists
+    const existingShortUrl = Object.keys(urlDatabase).find(key => urlDatabase[key] === validUrl);
+
+    if (existingShortUrl) {
+      res.json({
+        original_url: validUrl,
+        short_url: parseInt(existingShortUrl)
+      });
+    } else {
+      const shortUrl = urlCounter++;
+      urlDatabase[shortUrl] = validUrl;
+
+      res.json({
+        original_url: validUrl,
+        short_url: shortUrl
+      });
+    }
+  });
+});
+
+app.get('/api/shorturl/:short_url', (req, res) => {
+  const shortUrl = req.params.short_url;
+
+  // Validate that short_url is a number
+  if (!/^\d+$/.test(shortUrl)) {
+    return res.json({ error: 'Wrong format' });
+  }
+
+  const originalUrl = urlDatabase[shortUrl];
+
+  if (originalUrl) {
+    res.redirect(originalUrl);
+  } else {
+    res.json({ error: 'No short URL found for the given input' });
+  }
+});
+
+// ==================== IMAGE SEARCH ABSTRACTION LAYER ====================
+const searchSchema = new mongoose.Schema({
+  term: { type: String, required: true },
+  when: { type: Date, default: Date.now }
+});
+
+const Search = mongoose.model('Search', searchSchema);
 
 // ==================== FILE METADATA MICROSERVICE ====================
 const upload = multer({ dest: 'uploads/' });
