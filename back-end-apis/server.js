@@ -32,6 +32,15 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
 
+// ==================== REQUEST HEADER PARSER MICROSERVICE ====================
+app.get('/api/whoami', (req, res) => {
+  res.json({
+    ipaddress: req.ip || req.connection.remoteAddress || req.socket.remoteAddress,
+    language: req.headers['accept-language'],
+    software: req.headers['user-agent']
+  });
+});
+
 // ==================== TIMESTAMP MICROSERVICE ====================
 app.get('/api/:date?', (req, res) => {
   const dateParam = req.params.date;
@@ -57,15 +66,6 @@ app.get('/api/:date?', (req, res) => {
   res.json({
     unix: date.getTime(),
     utc: date.toUTCString()
-  });
-});
-
-// ==================== REQUEST HEADER PARSER MICROSERVICE ====================
-app.get('/api/whoami', (req, res) => {
-  res.json({
-    ipaddress: req.ip || req.connection.remoteAddress || req.socket.remoteAddress,
-    language: req.headers['accept-language'],
-    software: req.headers['user-agent']
   });
 });
 
