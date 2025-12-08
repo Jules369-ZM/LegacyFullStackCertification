@@ -91,10 +91,13 @@ class DrumMachine extends React.Component {
     });
 
     // Add visual feedback
-    const pad = document.getElementById(`drum-pad-${keyTrigger}`);
-    if (pad) {
-      pad.classList.add('active');
-      setTimeout(() => pad.classList.remove('active'), 100);
+    if (soundId) {
+      const padId = soundId.replace(/\s+/g, '-').replace(/'/g, '');
+      const pad = document.getElementById(padId);
+      if (pad) {
+        pad.classList.add('active');
+        setTimeout(() => pad.classList.remove('active'), 100);
+      }
     }
   }
 
@@ -143,7 +146,7 @@ class DrumMachine extends React.Component {
             <button
               key={pad.keyTrigger}
               className="drum-pad"
-              id={`drum-pad-${pad.keyTrigger}`}
+              id={pad.id.replace(/\s+/g, '-').replace(/'/g, '')}
               onClick={() => this.playSound(pad.keyTrigger, pad.id)}
             >
               {pad.keyTrigger}
