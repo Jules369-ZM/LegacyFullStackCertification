@@ -36,47 +36,75 @@ app.get('/', (req, res) => {
 
 // Conversion logic
 const conversions = {
-  // Length
-  gal: { to: 'L', factor: 3.78541, unit: 'gallons' },
-  L: { to: 'gal', factor: 1/3.78541, unit: 'liters' },
-  mi: { to: 'km', factor: 1.60934, unit: 'miles' },
-  km: { to: 'mi', factor: 1/1.60934, unit: 'kilometers' },
-  lbs: { to: 'kg', factor: 0.453592, unit: 'pounds' },
-  kg: { to: 'lbs', factor: 1/0.453592, unit: 'kilograms' }
+  gal: { to: 'L', factor: 3.78541, unit: 'gallons', returnUnit: 'liters' },
+  l: { to: 'gal', factor: 1/3.78541, unit: 'liters', returnUnit: 'gallons' },
+  L: { to: 'gal', factor: 1/3.78541, unit: 'liters', returnUnit: 'gallons' },
+  mi: { to: 'km', factor: 1.60934, unit: 'miles', returnUnit: 'kilometers' },
+  km: { to: 'mi', factor: 1/1.60934, unit: 'kilometers', returnUnit: 'miles' },
+  lbs: { to: 'kg', factor: 0.453592, unit: 'pounds', returnUnit: 'kilograms' },
+  kg: { to: 'lbs', factor: 1/0.453592, unit: 'kilograms', returnUnit: 'pounds' }
 };
 
-function convert(input) {
-  // Parse input
-  const regex = /^(\d+(?:\.\d+)?)\s*([a-zA-Z]+)$/;
-  const match = input.match(regex);
+// Function to parse number (handles fractions, decimals, etc.)
+function parseNumber(input) {
+  if (!input) return 1; // Default to 1 if no number provided
 
-  if (!match) {
+  // Handle fractions like 1/2, 2.5/6
+  if (input.includes('/')) {
+    const parts = input.split('/');
+    if (parts.length === 2) {
+      const num = parseFloat(parts[0]);
+      const den = parseFloat(parts[1]);
+      if (!isNaN(num) && !isNaN(den) && den !== 0) {
+        return num / den;
+      }
+    }
+    // Invalid fraction
+    return NaN;
+  }
+
+  // Handle decimals
+  const num = parseFloat(input);
+  return isNaN(num) ? NaN : num;
+}
+
+function convert(input) {
+  // Parse input - find first letter to separate number from unit
+  const firstLetterIndex = input.search(/[a-zA-Z]/);
+
+  if (firstLetterIndex === -1) {
     return { error: 'invalid number and unit' };
   }
 
-  const num = parseFloat(match[1]);
-  const unit = match[2].toLowerCase();
+  const numberPart = input.substring(0, firstLetterIndex).trim();
+  const unitPart = input.substring(firstLetterIndex).trim();
 
-  // Check if unit is valid
-  if (!conversions[unit]) {
-    return { error: 'invalid unit' };
-  }
-
-  // Check if number is valid
-  if (isNaN(num)) {
+  // Parse number
+  const initNum = parseNumber(numberPart);
+  if (isNaN(initNum)) {
     return { error: 'invalid number' };
   }
 
-  const conversion = conversions[unit];
-  const result = (num * conversion.factor).toFixed(5);
-  const resultNum = parseFloat(result);
+  // Parse unit (preserve case for L)
+  let initUnit = unitPart.toLowerCase();
+  if (unitPart.toUpperCase() === 'L') {
+    initUnit = 'L';
+  }
+
+  // Check if unit is valid
+  if (!conversions[initUnit]) {
+    return { error: 'invalid unit' };
+  }
+
+  const conversion = conversions[initUnit];
+  const returnNum = parseFloat((initNum * conversion.factor).toFixed(5));
 
   return {
-    initNum: num,
-    initUnit: unit,
-    returnNum: resultNum,
+    initNum: initNum,
+    initUnit: initUnit,
+    returnNum: returnNum,
     returnUnit: conversion.to,
-    string: `${num} ${unit} converts to ${resultNum} ${conversion.to}`
+    string: `${initNum} ${conversion.unit} converts to ${returnNum} ${conversion.returnUnit}`
   };
 }
 
