@@ -17,6 +17,10 @@ author = "agent"
 task = "workflow.run"
 args = "Back End APIs"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Metric Imperial Converter"
+
 [[workflows.workflow]]
 name = "Back End APIs"
 author = "agent"
@@ -38,6 +42,18 @@ author = 51049604
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd information-security/metric-imperial-converter/ && npm start"
+
+[[workflows.workflow]]
+name = "Metric Imperial Converter"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd information-security/metric-imperial-converter && npm start"
+waitForPort = 3000
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [[ports]]
 localPort = 3000
