@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Weather App</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <div id="app">
+    <h1>Local Weather</h1>
+
+    <div id="weather-container" class="weather-container">
+      <div id="location" class="location">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>Loading location...</span>
+      </div>
+
+      <div id="weather-main" class="weather-main">
+        <div class="temperature">
+          <span id="temp">--</span>
+          <span id="unit" class="unit">°C</span>
+        </div>
+
+        <div class="weather-icon">
+          <i id="weather-icon" class="fas fa-cloud"></i>
+        </div>
+
+        <div class="description">
+          <span id="description">Loading weather...</span>
+        </div>
+      </div>
+
+      <div id="weather-details" class="weather-details">
+        <div class="detail">
+          <i class="fas fa-tint"></i>
+          <span>Humidity: <span id="humidity">--</span>%</span>
+        </div>
+        <div class="detail">
+          <i class="fas fa-wind"></i>
+          <span>Wind: <span id="wind">--</span> m/s</span>
+        </div>
+        <div class="detail">
+          <i class="fas fa-compress-arrows-alt"></i>
+          <span>Pressure: <span id="pressure">--</span> hPa</span>
+        </div>
+        <div class="detail">
+          <i class="fas fa-eye"></i>
+          <span>Visibility: <span id="visibility">--</span> km</span>
+        </div>
+      </div>
+
+      <button id="unit-toggle" class="unit-toggle">
+        <span id="toggle-text">Switch to °F</span>
+      </button>
+    </div>
+
+    <div id="error-message" class="error-message hidden">
+      <i class="fas fa-exclamation-triangle"></i>
+      <p>Unable to get weather data. Please check your location permissions and internet connection.</p>
+    </div>
+
+    <div id="loading" class="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Loading weather data...</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
