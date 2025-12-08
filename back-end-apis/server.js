@@ -33,33 +33,31 @@ app.get('/', (req, res) => {
 });
 
 // ==================== TIMESTAMP MICROSERVICE ====================
-app.get('/api/timestamp', (req, res) => {
-  const now = new Date();
-  res.json({
-    unix: now.getTime(),
-    utc: now.toUTCString()
-  });
-});
-
-app.get('/api/timestamp/:date_string', (req, res) => {
-  const dateString = req.params.date_string;
+app.get('/api/:date?', (req, res) => {
+  const dateParam = req.params.date;
   let date;
 
-  // Check if it's a unix timestamp
-  if (!isNaN(dateString)) {
-    date = new Date(parseInt(dateString));
+  // If no date provided, use current time
+  if (!dateParam) {
+    date = new Date();
   } else {
-    date = new Date(dateString);
+    // Check if it's a unix timestamp (all digits)
+    if (/^\d+$/.test(dateParam)) {
+      date = new Date(parseInt(dateParam));
+    } else {
+      date = new Date(dateParam);
+    }
   }
 
-  if (date.toString() === 'Invalid Date') {
-    res.json({ error: 'Invalid Date' });
-  } else {
-    res.json({
-      unix: date.getTime(),
-      utc: date.toUTCString()
-    });
+  // Check if date is invalid
+  if (dateParam && isNaN(date.getTime())) {
+    return res.json({ error: 'Invalid Date' });
   }
+
+  res.json({
+    unix: date.getTime(),
+    utc: date.toUTCString()
+  });
 });
 
 // ==================== REQUEST HEADER PARSER MICROSERVICE ====================
