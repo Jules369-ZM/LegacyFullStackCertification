@@ -11,26 +11,26 @@ router.get('/issues/:project', (req, res) => {
     let sql = 'SELECT * FROM issues WHERE project = ?';
     let params = [project];
 
-    // Get all query parameters
-    const queryKeys = Object.keys(req.query);
+    // Get all query parameters except _id and project
+    const queryKeys = Object.keys(req.query).filter(key => key !== '_id' && key !== 'project');
 
     for (const key of queryKeys) {
-      if (key !== '_id' && key !== 'project') {
-        const value = req.query[key];
+      const value = req.query[key];
 
-        if (value === '' || value === undefined) continue;
+      // Skip undefined or empty string values
+      if (value === undefined || value === '') continue;
 
-        // Handle boolean conversion for 'open' field
-        if (key === 'open') {
-          if (value === 'true' || value === 'false') {
-            const boolValue = value === 'true' ? 1 : 0;
-            sql += ` AND ${key} = ?`;
-            params.push(boolValue);
-          }
-        } else {
-          sql += ` AND ${key} = ?`;
-          params.push(value);
+      // Handle boolean conversion for 'open' field
+      if (key === 'open') {
+        if (value === 'true') {
+          sql += ` AND open = 1`;
+        } else if (value === 'false') {
+          sql += ` AND open = 0`;
         }
+      } else {
+        // For other fields, allow filtering by any value including empty strings
+        sql += ` AND ${key} = ?`;
+        params.push(value);
       }
     }
 
