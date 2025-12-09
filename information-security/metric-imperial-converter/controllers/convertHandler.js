@@ -37,29 +37,22 @@ function ConvertHandler() {
 
   // GET NUMBER
   this.getNum = function(input) {
-    if (!input || input.trim() === "") return 1;
+    if (input === "") return 1;
 
     // Check if input contains only letters (no numbers) - should default to 1
-    if (/^[a-zA-Z]+$/.test(input.trim())) return 1;
+    if (/^[a-zA-Z]+$/.test(input)) return 1;
 
-    // Extract number part (everything before first letter)
-    const firstLetterIndex = input.search(/[a-zA-Z]/);
-    const numberPart = firstLetterIndex === -1 ? input : input.substring(0, firstLetterIndex).trim();
+    if (input.split("/").length > 2) return NaN;
 
-    if (numberPart === "") return 1;
-
-    // check for invalid double fraction
-    if (numberPart.split("/").length > 2) return NaN;
-
-    if (numberPart.includes("/")) {
-      let [a, b] = numberPart.split("/");
+    if (input.includes("/")) {
+      let [a, b] = input.split("/");
       if (isNaN(a) || isNaN(b)) return NaN;
       return parseFloat(a) / parseFloat(b);
     }
 
-    if (isNaN(numberPart)) return NaN;
+    if (isNaN(input)) return NaN;
 
-    return parseFloat(numberPart);
+    return parseFloat(input);
   };
 
   // GET UNIT

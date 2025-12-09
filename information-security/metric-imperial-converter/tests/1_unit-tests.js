@@ -9,32 +9,32 @@ const { suite, test } = require('mocha');
 suite('Unit Tests', function(){
   suite('Function convertHandler.getNum(input)', function() {
     test('convertHandler should correctly read a whole number input.', function() {
-      assert.equal(convertHandler.getNum('32L'), 32);
-      assert.equal(convertHandler.getNum('5gal'), 5);
+      assert.equal(convertHandler.getNum('32'), 32);
+      assert.equal(convertHandler.getNum('5'), 5);
     });
 
     test('convertHandler should correctly read a decimal number input.', function() {
-      assert.equal(convertHandler.getNum('3.5L'), 3.5);
-      assert.equal(convertHandler.getNum('2.7gal'), 2.7);
+      assert.equal(convertHandler.getNum('3.5'), 3.5);
+      assert.equal(convertHandler.getNum('2.7'), 2.7);
     });
 
     test('convertHandler should correctly read a fractional input.', function() {
-      assert.equal(convertHandler.getNum('1/2L'), 0.5);
-      assert.equal(convertHandler.getNum('3/4gal'), 0.75);
+      assert.equal(convertHandler.getNum('1/2'), 0.5);
+      assert.equal(convertHandler.getNum('3/4'), 0.75);
     });
 
     test('convertHandler should correctly read a fractional input with a decimal.', function() {
-      assert.equal(convertHandler.getNum('2.5/2L'), 1.25);
-      assert.equal(convertHandler.getNum('5.4/3gal'), 1.8);
+      assert.equal(convertHandler.getNum('2.5/2'), 1.25);
+      assert.equal(convertHandler.getNum('5.4/3'), 1.8);
     });
 
     test('convertHandler should correctly return an error on a double-fraction (i.e. 3/2/3).', function() {
-      assert.isNaN(convertHandler.getNum('3/2/3L'));
-      assert.isNaN(convertHandler.getNum('5/4/2gal'));
+      assert.isNaN(convertHandler.getNum('3/2/3'));
+      assert.isNaN(convertHandler.getNum('5/4/2'));
     });
 
     test('convertHandler should correctly default to a numerical input of 1 when no numerical input is provided.', function() {
-      assert.equal(convertHandler.getNum('L'), 1);
+      assert.equal(convertHandler.getNum(''), 1);
       assert.equal(convertHandler.getNum('gal'), 1);
     });
   });
