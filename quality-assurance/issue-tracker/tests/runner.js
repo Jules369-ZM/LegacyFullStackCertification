@@ -25,7 +25,7 @@
 *
 */
 
-const analyser = require('./assertion-analyser');
+const analyser = require('../assertion-analyser');
 const EventEmitter = require('events').EventEmitter;
 
 const Mocha = require('mocha'),

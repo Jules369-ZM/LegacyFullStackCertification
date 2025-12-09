@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const apiRoutes = require('./routes/api');
-const runner = require('./test-runner');
+const runner = require('./tests/runner');
 
 // Initialize database
 const { db } = require('./database');
