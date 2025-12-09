@@ -7,31 +7,32 @@ router.get('/issues/:project', (req, res) => {
   try {
     const project = req.params.project;
 
-    // Build dynamic SQL query based on query parameters
+    // Build dynamic SQL query
     let sql = 'SELECT * FROM issues WHERE project = ?';
     let params = [project];
 
-    // Get all query parameters except _id and project
-    const queryKeys = Object.keys(req.query).filter(key => key !== '_id' && key !== 'project');
+    // Get all query parameters
+    const queryKeys = Object.keys(req.query);
 
     for (const key of queryKeys) {
       const value = req.query[key];
 
-      // Skip undefined values only - allow filtering by empty strings
-      if (value === undefined) continue;
+      // Skip if value is undefined or if it's the _id parameter (not in schema)
+      if (value === undefined || key === '_id') continue;
 
-      // Handle boolean conversion for 'open' field
       if (key === 'open') {
-        if (value === 'true') {
+        // Handle boolean conversion
+        if (value === 'true' || value === true) {
           sql += ` AND open = 1`;
-        } else if (value === 'false') {
+        } else if (value === 'false' || value === false) {
           sql += ` AND open = 0`;
-        } else {
-          // If not true/false, skip this filter
-          continue;
         }
-      } else {
-        // For other fields, allow filtering by any value including empty strings
+      } else if (key === 'assigned_to' || key === 'status_text') {
+        // These fields can be empty strings
+        sql += ` AND ${key} = ?`;
+        params.push(value);
+      } else if (['issue_title', 'issue_text', 'created_by'].includes(key)) {
+        // Other text fields
         sql += ` AND ${key} = ?`;
         params.push(value);
       }
@@ -39,10 +40,9 @@ router.get('/issues/:project', (req, res) => {
 
     sql += ' ORDER BY created_on DESC';
 
-    // Execute the dynamic query
     const issues = db.prepare(sql).all(...params);
 
-    // Format the response to match FreeCodeCamp requirements
+    // Format response
     const processedIssues = issues.map(issue => ({
       _id: issue._id,
       issue_title: issue.issue_title,
@@ -51,7 +51,7 @@ router.get('/issues/:project', (req, res) => {
       updated_on: issue.updated_on,
       created_by: issue.created_by,
       assigned_to: issue.assigned_to || '',
-      open: Boolean(issue.open),
+      open: issue.open === 1,
       status_text: issue.status_text || ''
     }));
 
@@ -64,7 +64,7 @@ router.get('/issues/:project', (req, res) => {
 // POST /api/issues/:project
 router.post('/issues/:project', (req, res) => {
   const project = req.params.project;
-  const { issue_title, issue_text, created_by, assigned_to, status_text } = req.body;
+  const { issue_title, issue_text, created_by, assigned_to = '', status_text = '' } = req.body;
 
   // Validation check
   if (!issue_title || !issue_text || !created_by) {
@@ -72,31 +72,33 @@ router.post('/issues/:project', (req, res) => {
   }
 
   try {
-    // Insert new issue - ensure optional fields are stored as empty strings
+    // Insert new issue
     const result = statements.insertIssue.run(
       project,
       issue_title,
       issue_text,
       created_by,
-      assigned_to || '',
-      status_text || ''
+      assigned_to,
+      status_text
     );
 
     // Get the inserted issue
     const insertedIssue = statements.getIssueById.get(result.lastInsertRowid);
 
-    // Return the created object with all submitted fields, excluded optional fields as empty strings
-    res.json({
+    // Format response according to FCC requirements
+    const response = {
       _id: insertedIssue._id,
       issue_title: insertedIssue.issue_title,
       issue_text: insertedIssue.issue_text,
       created_on: insertedIssue.created_on,
       updated_on: insertedIssue.updated_on,
       created_by: insertedIssue.created_by,
-      assigned_to: assigned_to || '', // Use the request value, default to empty string
-      open: Boolean(insertedIssue.open),
-      status_text: status_text || '' // Use the request value, default to empty string
-    });
+      assigned_to: insertedIssue.assigned_to || '',
+      open: insertedIssue.open === 1,
+      status_text: insertedIssue.status_text || ''
+    };
+
+    res.json(response);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -117,25 +119,27 @@ router.put('/issues/:project', (req, res) => {
       return res.json({ error: 'could not update', '_id': _id });
     }
 
-    // Get update fields
-    const { issue_title, issue_text, created_by, assigned_to, status_text, open } = req.body;
+    // Get update fields, excluding _id
+    const updateFields = {};
+    Object.keys(req.body).forEach(key => {
+      if (key !== '_id' && req.body[key] !== undefined) {
+        updateFields[key] = req.body[key];
+      }
+    });
 
     // Check if any update fields are provided
-    const updateFields = ['issue_title', 'issue_text', 'created_by', 'assigned_to', 'status_text', 'open'];
-    const hasUpdateFields = updateFields.some(field => req.body[field] !== undefined);
-
-    if (!hasUpdateFields) {
+    if (Object.keys(updateFields).length === 0) {
       return res.json({ error: 'no update field(s) sent', '_id': _id });
     }
 
     // Prepare update values
     const updateValues = [
-      issue_title !== undefined ? issue_title : existingIssue.issue_title,
-      issue_text !== undefined ? issue_text : existingIssue.issue_text,
-      created_by !== undefined ? created_by : existingIssue.created_by,
-      assigned_to !== undefined ? assigned_to : existingIssue.assigned_to,
-      status_text !== undefined ? status_text : existingIssue.status_text,
-      open !== undefined ? (open === true || open === 'true' ? 1 : 0) : existingIssue.open,
+      updateFields.issue_title !== undefined ? updateFields.issue_title : existingIssue.issue_title,
+      updateFields.issue_text !== undefined ? updateFields.issue_text : existingIssue.issue_text,
+      updateFields.created_by !== undefined ? updateFields.created_by : existingIssue.created_by,
+      updateFields.assigned_to !== undefined ? updateFields.assigned_to : existingIssue.assigned_to,
+      updateFields.status_text !== undefined ? updateFields.status_text : existingIssue.status_text,
+      updateFields.open !== undefined ? (updateFields.open === true || updateFields.open === 'true' ? 1 : 0) : existingIssue.open,
       _id
     ];
 
