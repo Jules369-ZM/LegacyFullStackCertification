@@ -4,6 +4,17 @@ const ConvertHandler = require('../controllers/convertHandler.js');
 const router = express.Router();
 const convertHandler = new ConvertHandler();
 
+// Valid units mapping for validation
+const validUnits = {
+  'gal': 'gal',
+  'l': 'L',
+  'L': 'L',
+  'mi': 'mi',
+  'km': 'km',
+  'lbs': 'lbs',
+  'kg': 'kg'
+};
+
 // GET /api/convert
 router.get('/convert', (req, res) => {
   const input = req.query.input;
@@ -28,7 +39,7 @@ router.get('/convert', (req, res) => {
     // Check if it's invalid unit by trying to parse unit first
     const lowerUnit = unitPart.toLowerCase();
     if (lowerUnit === 'l') lowerUnit = 'L';
-    if (!convertHandler.validUnits[lowerUnit]) {
+    if (!validUnits[lowerUnit]) {
       return res.send('invalid number and unit');
     }
     return res.send('invalid number');
@@ -38,11 +49,11 @@ router.get('/convert', (req, res) => {
   const lowerUnit = unitPart.toLowerCase();
   const normalizedUnit = lowerUnit === 'l' ? 'L' : lowerUnit;
 
-  if (!convertHandler.validUnits[normalizedUnit]) {
+  if (!validUnits[normalizedUnit]) {
     return res.send('invalid unit');
   }
 
-  const initUnit = convertHandler.validUnits[normalizedUnit]; // This will be 'L' for both 'l' and 'L' inputs
+  const initUnit = validUnits[normalizedUnit]; // This will be 'L' for both 'l' and 'L' inputs
   const returnUnit = convertHandler.getReturnUnit(normalizedUnit);
 
   const returnNum = convertHandler.convert(initNum, normalizedUnit);
@@ -82,7 +93,7 @@ router.post('/convert', (req, res) => {
     // Check if it's invalid unit by trying to parse unit first
     const lowerUnit = unitPart.toLowerCase();
     if (lowerUnit === 'l') lowerUnit = 'L';
-    if (!convertHandler.validUnits[lowerUnit]) {
+    if (!validUnits[lowerUnit]) {
       return res.send('invalid number and unit');
     }
     return res.send('invalid number');
@@ -92,11 +103,11 @@ router.post('/convert', (req, res) => {
   const lowerUnit = unitPart.toLowerCase();
   const normalizedUnit = lowerUnit === 'l' ? 'L' : lowerUnit;
 
-  if (!convertHandler.validUnits[normalizedUnit]) {
+  if (!validUnits[normalizedUnit]) {
     return res.send('invalid unit');
   }
 
-  const initUnit = convertHandler.validUnits[normalizedUnit]; // This will be 'L' for both 'l' and 'L' inputs
+  const initUnit = validUnits[normalizedUnit]; // This will be 'L' for both 'l' and 'L' inputs
   const returnUnit = convertHandler.getReturnUnit(normalizedUnit);
 
   const returnNum = convertHandler.convert(initNum, normalizedUnit);
