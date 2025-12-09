@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const apiRoutes = require('./routes/api');
+const runner = require('./test-runner');
 
 // Initialize database
 const { db } = require('./database');
@@ -25,9 +26,20 @@ app.get('/', (req, res) => {
 
 app.use('/api', apiRoutes);
 
-// Start server
-app.listen(port, () => {
+// Start server and tests!
+const listener = app.listen(port, () => {
   console.log(`Issue Tracker API listening on port ${port}`);
+  if(process.env.NODE_ENV==='test') {
+    console.log('Running Tests...');
+    setTimeout(function () {
+      try {
+        runner.run();
+      } catch(e) {
+        console.log('Tests are not valid:');
+        console.error(e);
+      }
+    }, 1500);
+  }
 });
 
 module.exports = app;
