@@ -17,8 +17,8 @@ router.get('/issues/:project', (req, res) => {
     for (const key of queryKeys) {
       const value = req.query[key];
 
-      // Skip undefined or empty string values
-      if (value === undefined || value === '') continue;
+      // Skip undefined values only - allow filtering by empty strings
+      if (value === undefined) continue;
 
       // Handle boolean conversion for 'open' field
       if (key === 'open') {
@@ -26,6 +26,9 @@ router.get('/issues/:project', (req, res) => {
           sql += ` AND open = 1`;
         } else if (value === 'false') {
           sql += ` AND open = 0`;
+        } else {
+          // If not true/false, skip this filter
+          continue;
         }
       } else {
         // For other fields, allow filtering by any value including empty strings
@@ -69,7 +72,7 @@ router.post('/issues/:project', (req, res) => {
   }
 
   try {
-    // Insert new issue
+    // Insert new issue - ensure optional fields are stored as empty strings
     const result = statements.insertIssue.run(
       project,
       issue_title,
@@ -82,20 +85,18 @@ router.post('/issues/:project', (req, res) => {
     // Get the inserted issue
     const insertedIssue = statements.getIssueById.get(result.lastInsertRowid);
 
-    // Format response according to FreeCodeCamp requirements
-    const response = {
+    // Return the created object with all submitted fields, excluded optional fields as empty strings
+    res.json({
       _id: insertedIssue._id,
       issue_title: insertedIssue.issue_title,
       issue_text: insertedIssue.issue_text,
       created_on: insertedIssue.created_on,
       updated_on: insertedIssue.updated_on,
       created_by: insertedIssue.created_by,
-      assigned_to: insertedIssue.assigned_to || '',
+      assigned_to: assigned_to || '', // Use the request value, default to empty string
       open: Boolean(insertedIssue.open),
-      status_text: insertedIssue.status_text || ''
-    };
-
-    res.json(response);
+      status_text: status_text || '' // Use the request value, default to empty string
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
