@@ -7,31 +7,31 @@ let convertHandler = new ConvertHandler();
 
 suite('Unit Tests', function() {
 
-  test('Whole number input', function() {
+  test('convertHandler should correctly read a whole number input.', function() {
     assert.strictEqual(convertHandler.getNum('32L'), 32);
   });
 
-  test('Decimal input', function() {
+  test('convertHandler should correctly read a decimal number input.', function() {
     assert.strictEqual(convertHandler.getNum('3.5kg'), 3.5);
   });
 
-  test('Fractional input', function() {
+  test('convertHandler should correctly read a fractional input.', function() {
     assert.strictEqual(convertHandler.getNum('1/2mi'), 0.5);
   });
 
-  test('Fractional input with decimal', function() {
+  test('convertHandler should correctly read a fractional input with a decimal.', function() {
     assert.strictEqual(convertHandler.getNum('3.5/7kg'), 0.5);
   });
 
-  test('Double fraction input', function() {
+  test('convertHandler should correctly return an error on a double-fraction (i.e. 3/2/3).', function() {
     assert.throws(() => convertHandler.getNum('3/2/3km'), 'invalid number');
   });
 
-  test('Default to 1', function() {
+  test('convertHandler should correctly default to a numerical input of 1 when no numerical input is provided.', function() {
     assert.strictEqual(convertHandler.getNum('kg'), 1);
   });
 
-  test('Valid unit input', function() {
+  test('convertHandler should correctly read each valid input unit.', function() {
     assert.strictEqual(convertHandler.getUnit('1km'), 'km');
     assert.strictEqual(convertHandler.getUnit('0.5mi'), 'mi');
     assert.strictEqual(convertHandler.getUnit('1/0.5l'), 'L');
@@ -40,11 +40,11 @@ suite('Unit Tests', function() {
     assert.strictEqual(convertHandler.getUnit('1lbs'), 'lbs');
   });
 
-  test('Invalid unit input', function() {
+  test('convertHandler should correctly return an error for an invalid input unit.', function() {
     assert.throws(() => convertHandler.getUnit('32g'), 'invalid unit');
   });
 
-  test('Correct return unit', function() {
+  test('convertHandler should return the correct return unit for each valid input unit.', function() {
     assert.strictEqual(convertHandler.getReturnUnit('km'), 'mi');
     assert.strictEqual(convertHandler.getReturnUnit('mi'), 'km');
     assert.strictEqual(convertHandler.getReturnUnit('L'), 'gal');
@@ -53,7 +53,7 @@ suite('Unit Tests', function() {
     assert.strictEqual(convertHandler.getReturnUnit('lbs'), 'kg');
   });
 
-  test('Spell out unit', function() {
+  test('convertHandler should correctly return the spelled-out string unit for each valid input unit.', function() {
     assert.strictEqual(convertHandler.spellOutUnit('km'), 'kilometers');
     assert.strictEqual(convertHandler.spellOutUnit('mi'), 'miles');
     assert.strictEqual(convertHandler.spellOutUnit('L'), 'liters');
@@ -62,27 +62,27 @@ suite('Unit Tests', function() {
     assert.strictEqual(convertHandler.spellOutUnit('lbs'), 'pounds');
   });
 
-  test('Conversion gal to L', function() {
+  test('convertHandler should correctly convert gal to L.', function() {
     assert.strictEqual(convertHandler.convert(3, 'gal'), 11.35623);
   });
 
-  test('Conversion L to gal', function() {
+  test('convertHandler should correctly convert L to gal.', function() {
     assert.strictEqual(convertHandler.convert(3, 'L'), 0.79252);
   });
 
-  test('Conversion mi to km', function() {
+  test('convertHandler should correctly convert mi to km.', function() {
     assert.strictEqual(convertHandler.convert(3, 'mi'), 4.82802);
   });
 
-  test('Conversion km to mi', function() {
+  test('convertHandler should correctly convert km to mi.', function() {
     assert.strictEqual(convertHandler.convert(3, 'km'), 1.86412);
   });
 
-  test('Conversion lbs to kg', function() {
+  test('convertHandler should correctly convert lbs to kg.', function() {
     assert.strictEqual(convertHandler.convert(3, 'lbs'), 1.36078);
   });
 
-  test('Conversion kg to lbs', function() {
+  test('convertHandler should correctly convert kg to lbs.', function() {
     assert.strictEqual(convertHandler.convert(3, 'kg'), 6.61387);
   });
 
