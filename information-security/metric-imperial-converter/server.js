@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const apiRoutes = require("./routes/api");
 const fccTestingRoutes = require('./routes/fcctesting');
+const runner = require('./test-runner');
 
 const app = express();
 
@@ -57,9 +58,20 @@ app.get("/", (req, res) => {
 // 404 handler
 app.use((req, res) => res.status(404).type("text").send("Not Found"));
 
-// Start server
+// Start server and tests!
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Server running on port " + listener.address().port);
+  if(process.env.NODE_ENV==='test') {
+    console.log('Running Tests...');
+    setTimeout(function () {
+      try {
+        runner.run();
+      } catch(e) {
+        console.log('Tests are not valid:');
+        console.error(e);
+      }
+    }, 1500);
+  }
 });
 
 module.exports = app;
