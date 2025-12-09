@@ -27,7 +27,7 @@ suite('Functional Tests', function() {
     chai.request(server)
       .get('/api/convert?input=32g')
       .end(function(err,res){
-        assert.equal(res.body.error,'invalid unit');
+        assert.equal(res.text,'invalid unit');
         done();
       });
   });
@@ -36,7 +36,7 @@ suite('Functional Tests', function() {
     chai.request(server)
       .get('/api/convert?input=3/7/2kg')
       .end(function(err,res){
-        assert.equal(res.body.error,'invalid number');
+        assert.equal(res.text,'invalid number');
         done();
       });
   });
@@ -45,7 +45,7 @@ suite('Functional Tests', function() {
     chai.request(server)
       .get('/api/convert?input=3/7/2kilomegagram')
       .end(function(err,res){
-        assert.equal(res.body.error,'invalid number and unit');
+        assert.equal(res.text,'invalid number and unit');
         done();
       });
   });
