@@ -8,19 +8,27 @@ let convertHandler = new ConvertHandler();
 suite('Unit Tests', function() {
 
   test('Whole number input', function() {
-    assert.isNotNaN(convertHandler.getNum('5kg'));
+    assert.strictEqual(convertHandler.getNum('32L'), 32);
   });
 
   test('Decimal input', function() {
-    assert.isNotNaN(convertHandler.getNum('1.54kg'));
+    assert.strictEqual(convertHandler.getNum('3.5kg'), 3.5);
   });
 
   test('Fractional input', function() {
-    assert.isNotNaN(convertHandler.getNum('1/2kg'));
+    assert.strictEqual(convertHandler.getNum('1/2mi'), 0.5);
   });
 
   test('Fractional input with decimal', function() {
-    assert.isNotNaN(convertHandler.getNum('1/2.5kg'));
+    assert.strictEqual(convertHandler.getNum('3.5/7kg'), 0.5);
+  });
+
+  test('Double fraction input', function() {
+    assert.throws(() => convertHandler.getNum('3/2/3km'), 'invalid number');
+  });
+
+  test('Default to 1', function() {
+    assert.strictEqual(convertHandler.getNum('kg'), 1);
   });
 
   test('Valid unit input', function() {
@@ -30,6 +38,10 @@ suite('Unit Tests', function() {
     assert.strictEqual(convertHandler.getUnit('1/2gal'), 'gal');
     assert.strictEqual(convertHandler.getUnit('1kg'), 'kg');
     assert.strictEqual(convertHandler.getUnit('1lbs'), 'lbs');
+  });
+
+  test('Invalid unit input', function() {
+    assert.throws(() => convertHandler.getUnit('32g'), 'invalid unit');
   });
 
   test('Correct return unit', function() {
