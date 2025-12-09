@@ -34,7 +34,7 @@ suite('Unit Tests', function() {
   test('Valid unit input', function() {
     assert.strictEqual(convertHandler.getUnit('1km'), 'km');
     assert.strictEqual(convertHandler.getUnit('0.5mi'), 'mi');
-    assert.strictEqual(convertHandler.getUnit('1/0.5l'), 'l');
+    assert.strictEqual(convertHandler.getUnit('1/0.5l'), 'L');
     assert.strictEqual(convertHandler.getUnit('1/2gal'), 'gal');
     assert.strictEqual(convertHandler.getUnit('1kg'), 'kg');
     assert.strictEqual(convertHandler.getUnit('1lbs'), 'lbs');
@@ -47,8 +47,8 @@ suite('Unit Tests', function() {
   test('Correct return unit', function() {
     assert.strictEqual(convertHandler.getReturnUnit('km'), 'mi');
     assert.strictEqual(convertHandler.getReturnUnit('mi'), 'km');
-    assert.strictEqual(convertHandler.getReturnUnit('l'), 'gal');
-    assert.strictEqual(convertHandler.getReturnUnit('gal'), 'l');
+    assert.strictEqual(convertHandler.getReturnUnit('L'), 'gal');
+    assert.strictEqual(convertHandler.getReturnUnit('gal'), 'L');
     assert.strictEqual(convertHandler.getReturnUnit('kg'), 'lbs');
     assert.strictEqual(convertHandler.getReturnUnit('lbs'), 'kg');
   });
@@ -56,7 +56,7 @@ suite('Unit Tests', function() {
   test('Spell out unit', function() {
     assert.strictEqual(convertHandler.spellOutUnit('km'), 'kilometers');
     assert.strictEqual(convertHandler.spellOutUnit('mi'), 'miles');
-    assert.strictEqual(convertHandler.spellOutUnit('l'), 'liters');
+    assert.strictEqual(convertHandler.spellOutUnit('L'), 'liters');
     assert.strictEqual(convertHandler.spellOutUnit('gal'), 'gallons');
     assert.strictEqual(convertHandler.spellOutUnit('kg'), 'kilograms');
     assert.strictEqual(convertHandler.spellOutUnit('lbs'), 'pounds');
@@ -67,7 +67,7 @@ suite('Unit Tests', function() {
   });
 
   test('Conversion L to gal', function() {
-    assert.strictEqual(convertHandler.convert(3, 'l'), 0.79252);
+    assert.strictEqual(convertHandler.convert(3, 'L'), 0.79252);
   });
 
   test('Conversion mi to km', function() {

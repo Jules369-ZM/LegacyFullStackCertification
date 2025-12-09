@@ -29,7 +29,8 @@ function ConvertHandler() {
     // check if input has a matching unit
     let match = input.match(/(l|L|gal|kg|lbs|km|mi)$/)
     if (match) {
-      return match[0].toLowerCase()
+      let unit = match[0].toLowerCase()
+      return unit === 'l' ? 'L' : unit
     } else {
       throw 'invalid unit'
     }
@@ -39,8 +40,8 @@ function ConvertHandler() {
     const units = {
       'mi': 'km',
       'km': 'mi',
-      'gal': 'l',
-      'l': 'gal',
+      'gal': 'L',
+      'L': 'gal',
       'lbs': 'kg',
       'kg': 'lbs'
     }
@@ -54,7 +55,7 @@ function ConvertHandler() {
       'mi': 'miles',
       'km': 'kilometers',
       'gal': 'gallons',
-      'l': 'liters',
+      'L': 'liters',
       'lbs': 'pounds',
       'kg': 'kilograms'
     }
@@ -78,7 +79,7 @@ function ConvertHandler() {
       case 'gal':
         result = initNum * galToL
         break
-      case 'l':
+      case 'L':
         result = initNum / galToL
         break
       case 'lbs':
