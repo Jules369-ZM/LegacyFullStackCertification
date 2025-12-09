@@ -1,3 +1,3 @@
 // tests/runner.js
-require("./unit-tests");
-require("./functional-tests");
+require("./1_unit-tests");
+require("./2_functional-tests");
