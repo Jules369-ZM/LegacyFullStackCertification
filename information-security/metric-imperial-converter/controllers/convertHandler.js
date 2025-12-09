@@ -1,9 +1,9 @@
 function ConvertHandler() {
-  const units = ['gal','l','lbs','kg','mi','km'];
+  const units = ['gal','lbs','kg','mi','km'];
 
   const returnUnitMap = {
     gal: 'L',
-    L: 'gal',
+    L: 'gal',    // uppercase L key
     lbs: 'kg',
     kg: 'lbs',
     mi: 'km',
@@ -28,6 +28,7 @@ function ConvertHandler() {
     km: 1/1.60934
   };
 
+  // NUMBER
   this.getNum = function(input) {
     if (!input) return 1;
     const match = input.match(/^[\d\.\/]+/);
@@ -45,6 +46,7 @@ function ConvertHandler() {
     return isNaN(numStr) ? NaN : parseFloat(numStr);
   };
 
+  // UNIT
   this.getUnit = function(input) {
     if (!input) return null;
     const match = input.match(/[a-zA-Z]+$/);
@@ -52,22 +54,25 @@ function ConvertHandler() {
 
     let unit = match[0].toLowerCase();
     if (unit === 'l') return 'L';
-
     return units.includes(unit) ? unit : null;
   };
 
+  // RETURN UNIT
   this.getReturnUnit = function(unit) {
     return returnUnitMap[unit];
   };
 
+  // SPELL OUT
   this.spellOutUnit = function(unit) {
     return spelled[unit];
   };
 
+  // CONVERT
   this.convert = function(num, unit) {
     return parseFloat((num * factors[unit]).toFixed(5));
   };
 
+  // STRING OUTPUT
   this.getString = function(initNum, initUnit, returnNum, returnUnit) {
     return `${initNum} ${this.spellOutUnit(initUnit)} converts to ${returnNum} ${this.spellOutUnit(returnUnit)}`;
   };
