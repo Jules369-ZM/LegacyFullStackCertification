@@ -24,7 +24,7 @@ suite('Unit Tests', function() {
   });
 
   test('Double fraction input', function() {
-    assert.isNaN(convertHandler.getNum('3/2/3km'));
+    assert.equal(convertHandler.getNum('3/2/3km'), 'invalid number');
   });
 
   test('Default to 1', function() {
@@ -32,49 +32,58 @@ suite('Unit Tests', function() {
   });
 
   test('Valid unit input', function() {
-    const units = ['gal','L','lbs','kg','mi','km'];
-    units.forEach(u => assert.isNotNull(convertHandler.getUnit('3'+u)));
+    assert.equal(convertHandler.getUnit('2gal'), 'gal');
+    assert.equal(convertHandler.getUnit('2L'), 'L');
+    assert.equal(convertHandler.getUnit('2mi'), 'mi');
+    assert.equal(convertHandler.getUnit('2km'), 'km');
+    assert.equal(convertHandler.getUnit('2lbs'), 'lbs');
+    assert.equal(convertHandler.getUnit('2kg'), 'kg');
   });
 
   test('Invalid unit input', function() {
-    assert.isNull(convertHandler.getUnit('32g'));
+    assert.equal(convertHandler.getUnit('32g'), 'invalid unit');
   });
 
   test('Correct return unit', function() {
-    assert.equal(convertHandler.getReturnUnit('gal'),'L');
-    assert.equal(convertHandler.getReturnUnit('L'),'gal');
-    assert.equal(convertHandler.getReturnUnit('lbs'),'kg');
-    assert.equal(convertHandler.getReturnUnit('kg'),'lbs');
-    assert.equal(convertHandler.getReturnUnit('mi'),'km');
-    assert.equal(convertHandler.getReturnUnit('km'),'mi');
+    assert.equal(convertHandler.getReturnUnit('gal'), 'L');
+    assert.equal(convertHandler.getReturnUnit('L'), 'gal');
+    assert.equal(convertHandler.getReturnUnit('mi'), 'km');
+    assert.equal(convertHandler.getReturnUnit('km'), 'mi');
+    assert.equal(convertHandler.getReturnUnit('lbs'), 'kg');
+    assert.equal(convertHandler.getReturnUnit('kg'), 'lbs');
   });
 
   test('Spell out unit', function() {
-    assert.equal(convertHandler.spellOutUnit('kg'),'kilograms');
+    assert.equal(convertHandler.spellOutUnit('GAL'), 'gal');
+    assert.equal(convertHandler.spellOutUnit('l'), 'L');
+    assert.equal(convertHandler.spellOutUnit('MI'), 'mi');
+    assert.equal(convertHandler.spellOutUnit('KM'), 'km');
+    assert.equal(convertHandler.spellOutUnit('LBS'), 'lbs');
+    assert.equal(convertHandler.spellOutUnit('KG'), 'kg');
   });
 
   test('Conversion gal to L', function() {
-    assert.approximately(convertHandler.convert(1,'gal'),3.78541,0.1);
+    assert.equal(convertHandler.convert(2, 'gal'), 7.57082);
   });
 
   test('Conversion L to gal', function() {
-    assert.approximately(convertHandler.convert(1,'L'),0.26417,0.1);
+    assert.equal(convertHandler.convert(2, 'L'), 0.52834);
   });
 
   test('Conversion mi to km', function() {
-    assert.approximately(convertHandler.convert(1,'mi'),1.60934,0.1);
+    assert.equal(convertHandler.convert(2, 'mi'), 3.21868);
   });
 
   test('Conversion km to mi', function() {
-    assert.approximately(convertHandler.convert(1,'km'),0.62137,0.1);
+    assert.equal(convertHandler.convert(2, 'km'), 1.24275);
   });
 
   test('Conversion lbs to kg', function() {
-    assert.approximately(convertHandler.convert(1,'lbs'),0.45359,0.1);
+    assert.equal(convertHandler.convert(2, 'lbs'), 0.90718);
   });
 
   test('Conversion kg to lbs', function() {
-    assert.approximately(convertHandler.convert(1,'kg'),2.20462,0.1);
+    assert.equal(convertHandler.convert(2, 'kg'), 4.40925);
   });
 
 });

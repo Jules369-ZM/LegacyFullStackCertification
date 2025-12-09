@@ -1,80 +1,92 @@
 function ConvertHandler() {
-  const units = ['gal','lbs','kg','mi','km'];
-
-  const returnUnitMap = {
-    gal: 'L',
-    L: 'gal',    // uppercase L key
-    lbs: 'kg',
-    kg: 'lbs',
-    mi: 'km',
-    km: 'mi'
-  };
-
-  const spelled = {
-    gal: 'gallons',
-    L: 'liters',
-    lbs: 'pounds',
-    kg: 'kilograms',
-    mi: 'miles',
-    km: 'kilometers'
-  };
-
-  const factors = {
-    gal: 3.78541,
-    L: 1/3.78541,
-    lbs: 0.453592,
-    kg: 1/0.453592,
-    mi: 1.60934,
-    km: 1/1.60934
-  };
-
-  // NUMBER
-  this.getNum = function(input) {
-    if (!input) return 1;
-    const match = input.match(/^[\d\.\/]+/);
-    if (!match) return 1;
-
-    const numStr = match[0];
-    if (numStr.split('/').length > 2) return NaN;
-
-    if (numStr.includes('/')) {
-      let [a,b] = numStr.split('/');
-      if (isNaN(a) || isNaN(b)) return NaN;
-      return parseFloat(a)/parseFloat(b);
+  this.getNum = function (input) {
+    const englishAlphabet = /[a-zA-Z]/;
+    const idx = input.split("").findIndex((char) => englishAlphabet.test(char));
+    if (idx === 0) {
+      return 1;
     }
 
-    return isNaN(numStr) ? NaN : parseFloat(numStr);
+    let quantityStr;
+    if (idx < 0) {
+      quantityStr = input.slice(0);
+    } else {
+      quantityStr = input.slice(0, idx);
+    }
+
+    const quantityArr = quantityStr.split("/");
+
+    if (quantityArr.length === 1) {
+      const quantity = quantityArr[0];
+      if (quantity === "") return "invalid number";
+      return isNaN(+quantity) ? "invalid number" : +quantity;
+    }
+    if (quantityArr.length === 2) {
+      if (quantityArr.some((num) => num === "")) {
+        return "invalid number";
+      }
+      const numerator = +quantityArr[0];
+      const denominator = +quantityArr[1];
+      return isNaN(numerator) || isNaN(denominator)
+        ? "invalid number"
+        : numerator / denominator;
+    }
+
+    return "invalid number";
   };
 
-  // UNIT
-  this.getUnit = function(input) {
-    if (!input) return null;
-    const match = input.match(/[a-zA-Z]+$/);
-    if (!match) return null;
-
-    let unit = match[0].toLowerCase();
-    if (unit === 'l') return 'L';
-    return units.includes(unit) ? unit : null;
+  this.getUnit = function (input) {
+    const englishAlphabet = /[a-zA-Z]/;
+    const idx = input.split("").findIndex((char) => englishAlphabet.test(char));
+    if (idx < 0) {
+      return "invalid unit";
+    }
+    const unit = input.slice(idx);
+    return this.spellOutUnit(unit);
   };
 
-  // RETURN UNIT
-  this.getReturnUnit = function(unit) {
-    return returnUnitMap[unit];
+  this.getReturnUnit = function (initUnit) {
+    const units = {
+      gal: "L",
+      L: "gal",
+      mi: "km",
+      km: "mi",
+      lbs: "kg",
+      kg: "lbs",
+    };
+    return units[initUnit];
   };
 
-  // SPELL OUT
-  this.spellOutUnit = function(unit) {
-    return spelled[unit];
+  this.spellOutUnit = function (unit) {
+    if (unit === "L" || unit === "l") return "L";
+    const units = ["gal", "mi", "km", "lbs", "kg"];
+    if (units.includes(unit.toLowerCase())) {
+      return unit.toLowerCase();
+    }
+    return "invalid unit";
   };
 
-  // CONVERT
-  this.convert = function(num, unit) {
-    return parseFloat((num * factors[unit]).toFixed(5));
+  this.convert = function (initNum, initUnit) {
+    const conversionRate = {
+      gal: 3.78541,
+      L: 1 / 3.78541,
+      mi: 1.60934,
+      km: 1 / 1.60934,
+      lbs: 0.453592,
+      kg: 1 / 0.453592,
+    };
+    return Math.round(conversionRate[initUnit] * initNum * 1e5) / 1e5;
   };
 
-  // STRING OUTPUT
-  this.getString = function(initNum, initUnit, returnNum, returnUnit) {
-    return `${initNum} ${this.spellOutUnit(initUnit)} converts to ${returnNum} ${this.spellOutUnit(returnUnit)}`;
+  this.getString = function (initNum, initUnit, returnNum, returnUnit) {
+    const unitMapping = {
+      gal: "gallons",
+      L: "liters",
+      mi: "miles",
+      km: "kilometers",
+      lbs: "pounds",
+      kg: "kilograms",
+    };
+    return `${initNum} ${unitMapping[initUnit]} converts to ${returnNum} ${unitMapping[returnUnit]}`;
   };
 }
 
