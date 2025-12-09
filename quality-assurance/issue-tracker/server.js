@@ -28,7 +28,13 @@ app.use('/api', apiRoutes);
 connectDB()
   .then(() => {
     console.log('MongoDB database initialized');
-
+  })
+  .catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+    console.log('Continuing without database connection...');
+  })
+  .finally(() => {
+    // Always start the server and run tests, even if MongoDB fails
     const listener = app.listen(port, () => {
       console.log(`Issue Tracker API listening on port ${port}`);
       console.log('Running Tests...');
@@ -43,8 +49,4 @@ connectDB()
     });
 
     module.exports = app;
-  })
-  .catch(err => {
-    console.error('Failed to connect to MongoDB:', err);
-    process.exit(1);
   });
