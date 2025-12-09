@@ -31,20 +31,32 @@ router.get('/issues/:project', (req, res) => {
   try {
     const project = req.params.project;
 
-    // Build query based on filters
+    // Start with base query
     let sql = 'SELECT * FROM issues WHERE project = ?';
     const params = [project];
 
-    // Add filters from query parameters
-    const validFilters = ['issue_title', 'issue_text', 'created_by', 'assigned_to', 'status_text', 'open'];
+    // List of all valid filter fields
+    const filterFields = [
+      'issue_title',
+      'issue_text',
+      'created_by',
+      'assigned_to',
+      'status_text',
+      'open'
+    ];
 
-    validFilters.forEach((field, index) => {
+    // Process each filter field
+    filterFields.forEach(field => {
       if (req.query[field] !== undefined) {
         if (field === 'open') {
-          const isOpen = req.query[field] === 'true';
-          sql += ` AND open = ?`;
-          params.push(isOpen ? 1 : 0);
+          // Handle boolean open field
+          if (req.query[field] === 'true') {
+            sql += ' AND open = 1';
+          } else if (req.query[field] === 'false') {
+            sql += ' AND open = 0';
+          }
         } else {
+          // Handle string fields - allow filtering by empty strings too
           sql += ` AND ${field} = ?`;
           params.push(req.query[field]);
         }
@@ -106,15 +118,14 @@ router.post('/issues/:project', (req, res) => {
 
 // PUT /api/issues/:project
 router.put('/issues/:project', (req, res) => {
+  const { _id } = req.body;
+
+  if (!_id) {
+    return res.json({ error: 'missing _id' });
+  }
+
   try {
-    const { _id, ...updateFields } = req.body;
-
-    // Check for _id
-    if (!_id) {
-      return res.json({ error: 'missing _id' });
-    }
-
-    // Check if _id is valid ObjectId
+    // Validate ObjectId
     if (!isValidObjectId(_id)) {
       return res.json({ error: 'could not update', '_id': _id });
     }
@@ -125,33 +136,39 @@ router.put('/issues/:project', (req, res) => {
       return res.json({ error: 'could not update', '_id': _id });
     }
 
-    // Get updateable fields
-    const validFields = ['issue_title', 'issue_text', 'created_by', 'assigned_to', 'status_text', 'open'];
-    const fieldsToUpdate = {};
+    // Get all possible update fields
+    const updateFields = {};
+    const validUpdateFields = [
+      'issue_title',
+      'issue_text',
+      'created_by',
+      'assigned_to',
+      'status_text',
+      'open'
+    ];
 
-    validFields.forEach(field => {
-      if (updateFields[field] !== undefined) {
-        if (field === 'open') {
-          fieldsToUpdate[field] = updateFields[field] === true || updateFields[field] === 'true' ? 1 : 0;
-        } else {
-          fieldsToUpdate[field] = updateFields[field];
-        }
+    // Collect fields that are being updated
+    let hasUpdateFields = false;
+    validUpdateFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        updateFields[field] = req.body[field];
+        hasUpdateFields = true;
       }
     });
 
     // Check if any fields to update
-    if (Object.keys(fieldsToUpdate).length === 0) {
+    if (!hasUpdateFields) {
       return res.json({ error: 'no update field(s) sent', '_id': _id });
     }
 
     // Prepare update values
     const updateValues = [
-      fieldsToUpdate.issue_title !== undefined ? fieldsToUpdate.issue_title : existingIssue.issue_title,
-      fieldsToUpdate.issue_text !== undefined ? fieldsToUpdate.issue_text : existingIssue.issue_text,
-      fieldsToUpdate.created_by !== undefined ? fieldsToUpdate.created_by : existingIssue.created_by,
-      fieldsToUpdate.assigned_to !== undefined ? fieldsToUpdate.assigned_to : existingIssue.assigned_to,
-      fieldsToUpdate.status_text !== undefined ? fieldsToUpdate.status_text : existingIssue.status_text,
-      fieldsToUpdate.open !== undefined ? fieldsToUpdate.open : existingIssue.open,
+      updateFields.issue_title !== undefined ? updateFields.issue_title : existingIssue.issue_title,
+      updateFields.issue_text !== undefined ? updateFields.issue_text : existingIssue.issue_text,
+      updateFields.created_by !== undefined ? updateFields.created_by : existingIssue.created_by,
+      updateFields.assigned_to !== undefined ? updateFields.assigned_to : existingIssue.assigned_to,
+      updateFields.status_text !== undefined ? updateFields.status_text : existingIssue.status_text,
+      updateFields.open !== undefined ? (updateFields.open === true || updateFields.open === 'true' ? 1 : 0) : existingIssue.open,
       _id
     ];
 
@@ -164,6 +181,7 @@ router.put('/issues/:project', (req, res) => {
       res.json({ error: 'could not update', '_id': _id });
     }
   } catch (error) {
+    // Catch any error and return the expected format
     res.json({ error: 'could not update', '_id': _id });
   }
 });
