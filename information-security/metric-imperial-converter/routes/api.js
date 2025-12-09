@@ -26,13 +26,13 @@ module.exports = function () {
     }
 
     if (numError && unitError) {
-      return res.send('invalid number and unit')
+      return res.json({ error: 'invalid number and unit' })
     }
     if (numError) {
-      return res.send('invalid number')
+      return res.json({ error: 'invalid number' })
     }
     if (unitError) {
-      return res.send('invalid unit')
+      return res.json({ error: 'invalid unit' })
     }
 
     const returnNum = convertHandler.convert(initNum, initUnit)
