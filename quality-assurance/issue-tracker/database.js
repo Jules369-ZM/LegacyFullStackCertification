@@ -17,7 +17,7 @@ db.exec(`
     created_by TEXT NOT NULL,
     assigned_to TEXT DEFAULT '',
     status_text TEXT DEFAULT '',
-    open INTEGER DEFAULT 1,
+    open BOOLEAN DEFAULT 1,
     created_on DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_on DATETIME DEFAULT CURRENT_TIMESTAMP
   )
@@ -27,8 +27,8 @@ db.exec(`
 const statements = {
   // Insert new issue
   insertIssue: db.prepare(`
-    INSERT INTO issues (project, issue_title, issue_text, created_by, assigned_to, status_text)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO issues (project, issue_title, issue_text, created_by, assigned_to, status_text, open)
+    VALUES (?, ?, ?, ?, ?, ?, 1)
   `),
 
   // Get issue by ID
