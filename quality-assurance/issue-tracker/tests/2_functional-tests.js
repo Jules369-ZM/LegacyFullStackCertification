@@ -1,12 +1,15 @@
-const chai = require('chai');
-const chaiHttp = require('chai-http');
-const server = require('../server');
-const { expect } = chai;
+const chaiHttp = require("chai-http");
+const chai = require("chai");
+const assert = chai.assert;
+const server = require("../server");
 
+// Add this at the top of both test files
+const mocha = require('mocha');
+const suite = mocha.suite;
+const test = mocha.test;
+// OR use global mocha functions
+// const { suite, test } = mocha;
 chai.use(chaiHttp);
-
-// Import mocha globals for test structure
-const { suite, test } = require('mocha');
 
 suite('Functional Tests', function() {
   this.timeout(5000);
@@ -27,17 +30,17 @@ suite('Functional Tests', function() {
           status_text: 'In Progress'
         })
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.be.an('object');
-          expect(res.body).to.have.property('_id');
-          expect(res.body).to.have.property('issue_title', 'Test Issue');
-          expect(res.body).to.have.property('issue_text', 'This is a test issue');
-          expect(res.body).to.have.property('created_by', 'Test User');
-          expect(res.body).to.have.property('assigned_to', 'Test Assignee');
-          expect(res.body).to.have.property('status_text', 'In Progress');
-          expect(res.body).to.have.property('open', true);
-          expect(res.body).to.have.property('created_on');
-          expect(res.body).to.have.property('updated_on');
+          assert.equal(res.status, 200);
+          assert.isObject(res.body);
+          assert.property(res.body, '_id');
+          assert.propertyVal(res.body, 'issue_title', 'Test Issue');
+          assert.propertyVal(res.body, 'issue_text', 'This is a test issue');
+          assert.propertyVal(res.body, 'created_by', 'Test User');
+          assert.propertyVal(res.body, 'assigned_to', 'Test Assignee');
+          assert.propertyVal(res.body, 'status_text', 'In Progress');
+          assert.isTrue(res.body.open);
+          assert.property(res.body, 'created_on');
+          assert.property(res.body, 'updated_on');
           testIssueId = res.body._id;
           done();
         });
@@ -53,15 +56,15 @@ suite('Functional Tests', function() {
           created_by: 'Test User 2'
         })
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.be.an('object');
-          expect(res.body).to.have.property('_id');
-          expect(res.body).to.have.property('issue_title', 'Required Fields Only');
-          expect(res.body).to.have.property('issue_text', 'This issue has only required fields');
-          expect(res.body).to.have.property('created_by', 'Test User 2');
-          expect(res.body).to.have.property('assigned_to', '');
-          expect(res.body).to.have.property('status_text', '');
-          expect(res.body).to.have.property('open', true);
+          assert.equal(res.status, 200);
+          assert.isObject(res.body);
+          assert.property(res.body, '_id');
+          assert.propertyVal(res.body, 'issue_title', 'Required Fields Only');
+          assert.propertyVal(res.body, 'issue_text', 'This issue has only required fields');
+          assert.propertyVal(res.body, 'created_by', 'Test User 2');
+          assert.propertyVal(res.body, 'assigned_to', '');
+          assert.propertyVal(res.body, 'status_text', '');
+          assert.isTrue(res.body.open);
           done();
         });
     });
@@ -74,8 +77,8 @@ suite('Functional Tests', function() {
           issue_title: 'Missing Required Fields'
         })
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.have.property('error', 'required field(s) missing');
+          assert.equal(res.status, 200);
+          assert.propertyVal(res.body, 'error', 'required field(s) missing');
           done();
         });
     });
@@ -89,18 +92,18 @@ suite('Functional Tests', function() {
         .request(server)
         .get('/api/issues/test-project')
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.be.an('array');
-          expect(res.body.length).to.be.at.least(1);
-          expect(res.body[0]).to.have.property('_id');
-          expect(res.body[0]).to.have.property('issue_title');
-          expect(res.body[0]).to.have.property('issue_text');
-          expect(res.body[0]).to.have.property('created_by');
-          expect(res.body[0]).to.have.property('assigned_to');
-          expect(res.body[0]).to.have.property('status_text');
-          expect(res.body[0]).to.have.property('open');
-          expect(res.body[0]).to.have.property('created_on');
-          expect(res.body[0]).to.have.property('updated_on');
+          assert.equal(res.status, 200);
+          assert.isArray(res.body);
+          assert.isAtLeast(res.body.length, 1);
+          assert.property(res.body[0], '_id');
+          assert.property(res.body[0], 'issue_title');
+          assert.property(res.body[0], 'issue_text');
+          assert.property(res.body[0], 'created_by');
+          assert.property(res.body[0], 'assigned_to');
+          assert.property(res.body[0], 'status_text');
+          assert.property(res.body[0], 'open');
+          assert.property(res.body[0], 'created_on');
+          assert.property(res.body[0], 'updated_on');
           done();
         });
     });
@@ -110,10 +113,10 @@ suite('Functional Tests', function() {
         .request(server)
         .get('/api/issues/test-project?open=true')
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.be.an('array');
+          assert.equal(res.status, 200);
+          assert.isArray(res.body);
           res.body.forEach(issue => {
-            expect(issue).to.have.property('open', true);
+            assert.isTrue(issue.open);
           });
           done();
         });
@@ -124,11 +127,11 @@ suite('Functional Tests', function() {
         .request(server)
         .get('/api/issues/test-project?open=true&created_by=Test User')
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.be.an('array');
+          assert.equal(res.status, 200);
+          assert.isArray(res.body);
           res.body.forEach(issue => {
-            expect(issue).to.have.property('open', true);
-            expect(issue).to.have.property('created_by', 'Test User');
+            assert.isTrue(issue.open);
+            assert.propertyVal(issue, 'created_by', 'Test User');
           });
           done();
         });
@@ -139,10 +142,10 @@ suite('Functional Tests', function() {
         .request(server)
         .get('/api/issues/test-project?assigned_to=Test Assignee')
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.be.an('array');
+          assert.equal(res.status, 200);
+          assert.isArray(res.body);
           res.body.forEach(issue => {
-            expect(issue).to.have.property('assigned_to', 'Test Assignee');
+            assert.propertyVal(issue, 'assigned_to', 'Test Assignee');
           });
           done();
         });
@@ -161,9 +164,9 @@ suite('Functional Tests', function() {
           issue_title: 'Updated Issue Title'
         })
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.have.property('result', 'successfully updated');
-          expect(res.body).to.have.property('_id', testIssueId);
+          assert.equal(res.status, 200);
+          assert.propertyVal(res.body, 'result', 'successfully updated');
+          assert.propertyVal(res.body, '_id', testIssueId);
           done();
         });
     });
@@ -178,9 +181,9 @@ suite('Functional Tests', function() {
           status_text: 'Completed'
         })
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.have.property('result', 'successfully updated');
-          expect(res.body).to.have.property('_id', testIssueId);
+          assert.equal(res.status, 200);
+          assert.propertyVal(res.body, 'result', 'successfully updated');
+          assert.propertyVal(res.body, '_id', testIssueId);
           done();
         });
     });
@@ -193,8 +196,8 @@ suite('Functional Tests', function() {
           issue_title: 'Should not update'
         })
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.have.property('error', 'missing _id');
+          assert.equal(res.status, 200);
+          assert.propertyVal(res.body, 'error', 'missing _id');
           done();
         });
     });
@@ -207,9 +210,9 @@ suite('Functional Tests', function() {
           _id: testIssueId
         })
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.have.property('error', 'no update field(s) sent');
-          expect(res.body).to.have.property('_id', testIssueId);
+          assert.equal(res.status, 200);
+          assert.propertyVal(res.body, 'error', 'no update field(s) sent');
+          assert.propertyVal(res.body, '_id', testIssueId);
           done();
         });
     });
@@ -223,9 +226,9 @@ suite('Functional Tests', function() {
           issue_title: 'Should not update'
         })
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.have.property('error', 'could not update');
-          expect(res.body).to.have.property('_id', 'invalid-id');
+          assert.equal(res.status, 200);
+          assert.propertyVal(res.body, 'error', 'could not update');
+          assert.propertyVal(res.body, '_id', 'invalid-id');
           done();
         });
     });
@@ -242,9 +245,9 @@ suite('Functional Tests', function() {
           _id: testIssueId
         })
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.have.property('result', 'successfully deleted');
-          expect(res.body).to.have.property('_id', testIssueId);
+          assert.equal(res.status, 200);
+          assert.propertyVal(res.body, 'result', 'successfully deleted');
+          assert.propertyVal(res.body, '_id', testIssueId);
           done();
         });
     });
@@ -257,9 +260,9 @@ suite('Functional Tests', function() {
           _id: 'invalid-id'
         })
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.have.property('error', 'could not delete');
-          expect(res.body).to.have.property('_id', 'invalid-id');
+          assert.equal(res.status, 200);
+          assert.propertyVal(res.body, 'error', 'could not delete');
+          assert.propertyVal(res.body, '_id', 'invalid-id');
           done();
         });
     });
@@ -270,8 +273,8 @@ suite('Functional Tests', function() {
         .delete('/api/issues/test-project')
         .send({})
         .end(function(err, res) {
-          expect(res).to.have.status(200);
-          expect(res.body).to.have.property('error', 'missing _id');
+          assert.equal(res.status, 200);
+          assert.propertyVal(res.body, 'error', 'missing _id');
           done();
         });
     });
