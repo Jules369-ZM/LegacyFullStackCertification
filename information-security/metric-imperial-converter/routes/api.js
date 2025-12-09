@@ -23,7 +23,7 @@ module.exports = function () {
         string
       })
     } catch (error) {
-      res.json(error)
+      res.json({ error })
     }
   });
 
