@@ -14,14 +14,14 @@ router.get('/issues/:project', (req, res) => {
   const validFilters = ['issue_title', 'issue_text', 'created_by', 'assigned_to', 'status_text', 'open'];
 
   validFilters.forEach(filter => {
-    if (req.query[filter] !== undefined) {
+    if (req.query[filter] !== undefined && req.query[filter] !== '') {
       if (filter === 'open') {
         // Handle boolean for 'open' field
         const boolValue = req.query[filter] === 'true' ? 1 : 0;
         sql += ` AND open = ?`;
         params.push(boolValue);
       } else {
-        // Handle string fields
+        // Handle string fields - allow filtering by empty string too
         sql += ` AND ${filter} = ?`;
         params.push(req.query[filter]);
       }
@@ -41,9 +41,9 @@ router.get('/issues/:project', (req, res) => {
       created_on: issue.created_on,
       updated_on: issue.updated_on,
       created_by: issue.created_by,
-      assigned_to: issue.assigned_to || '',  // Always include as string
-      open: issue.open === 1,  // Must be boolean
-      status_text: issue.status_text || ''  // Always include as string
+      assigned_to: issue.assigned_to || '',  // Always include as empty string if null
+      open: issue.open === 1,  // Must be boolean true/false
+      status_text: issue.status_text || ''  // Always include as empty string if null
     }));
 
     res.json(formattedIssues);
@@ -104,31 +104,37 @@ router.put('/issues/:project', (req, res) => {
     return res.json({ error: 'missing _id' });
   }
 
-  // Check if any fields to update (excluding _id)
-  const fieldsToUpdate = Object.keys(updateFields).filter(key =>
-    updateFields[key] !== undefined
-  );
+  // Remove empty fields from updateFields
+  const filteredUpdateFields = {};
+  Object.keys(updateFields).forEach(key => {
+    if (updateFields[key] !== undefined) {
+      filteredUpdateFields[key] = updateFields[key];
+    }
+  });
 
-  if (fieldsToUpdate.length === 0) {
+  // Check if any fields to update (excluding _id)
+  if (Object.keys(filteredUpdateFields).length === 0) {
     return res.json({ error: 'no update field(s) sent', '_id': _id });
   }
 
   try {
-    // Check if issue exists
-    const existingIssue = statements.getIssueById.get(_id);
+    // Check if issue exists - convert _id to number if it's numeric
+    const issueId = isNaN(_id) ? _id : parseInt(_id);
+    const existingIssue = statements.getIssueById.get(issueId);
+
     if (!existingIssue) {
       return res.json({ error: 'could not update', '_id': _id });
     }
 
     // Build update object
     const updateData = {
-      issue_title: updateFields.issue_title !== undefined ? updateFields.issue_title : existingIssue.issue_title,
-      issue_text: updateFields.issue_text !== undefined ? updateFields.issue_text : existingIssue.issue_text,
-      created_by: updateFields.created_by !== undefined ? updateFields.created_by : existingIssue.created_by,
-      assigned_to: updateFields.assigned_to !== undefined ? updateFields.assigned_to : existingIssue.assigned_to,
-      status_text: updateFields.status_text !== undefined ? updateFields.status_text : existingIssue.status_text,
-      open: updateFields.open !== undefined ?
-        (updateFields.open === true || updateFields.open === 'true' ? 1 : 0) :
+      issue_title: filteredUpdateFields.issue_title !== undefined ? filteredUpdateFields.issue_title : existingIssue.issue_title,
+      issue_text: filteredUpdateFields.issue_text !== undefined ? filteredUpdateFields.issue_text : existingIssue.issue_text,
+      created_by: filteredUpdateFields.created_by !== undefined ? filteredUpdateFields.created_by : existingIssue.created_by,
+      assigned_to: filteredUpdateFields.assigned_to !== undefined ? filteredUpdateFields.assigned_to : existingIssue.assigned_to,
+      status_text: filteredUpdateFields.status_text !== undefined ? filteredUpdateFields.status_text : existingIssue.status_text,
+      open: filteredUpdateFields.open !== undefined ?
+        (filteredUpdateFields.open === true || filteredUpdateFields.open === 'true' ? 1 : 0) :
         existingIssue.open
     };
 
@@ -140,7 +146,7 @@ router.put('/issues/:project', (req, res) => {
       updateData.assigned_to,
       updateData.status_text,
       updateData.open,
-      _id
+      issueId
     );
 
     if (result.changes > 0) {
@@ -162,14 +168,16 @@ router.delete('/issues/:project', (req, res) => {
   }
 
   try {
-    // Check if issue exists
-    const existingIssue = statements.getIssueById.get(_id);
+    // Check if issue exists - convert _id to number if it's numeric
+    const issueId = isNaN(_id) ? _id : parseInt(_id);
+    const existingIssue = statements.getIssueById.get(issueId);
+
     if (!existingIssue) {
       return res.json({ error: 'could not delete', '_id': _id });
     }
 
-    // Delete the issue
-    const result = statements.deleteIssue.run(_id);
+    // Delete issue
+    const result = statements.deleteIssue.run(issueId);
 
     if (result.changes > 0) {
       res.json({ result: 'successfully deleted', '_id': _id });
