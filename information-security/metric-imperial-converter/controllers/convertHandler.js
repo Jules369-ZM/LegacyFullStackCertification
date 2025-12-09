@@ -1,14 +1,5 @@
 function ConvertHandler() {
-  const validUnits = ["gal", "l", "lbs", "kg", "mi", "km"];
-
-  const unitMap = {
-    gal: "gal",
-    l: "L",
-    lbs: "lbs",
-    kg: "kg",
-    mi: "mi",
-    km: "km",
-  };
+  const validUnits = ["gal", "L", "lbs", "kg", "mi", "km"];
 
   const returnUnitMap = {
     gal: "L",
@@ -16,16 +7,16 @@ function ConvertHandler() {
     lbs: "kg",
     kg: "lbs",
     mi: "km",
-    km: "mi",
+    km: "mi"
   };
 
-  const spellOut = {
+  const spelled = {
     gal: "gallons",
     L: "liters",
     lbs: "pounds",
     kg: "kilograms",
     mi: "miles",
-    km: "kilometers",
+    km: "kilometers"
   };
 
   const factors = {
@@ -34,42 +25,40 @@ function ConvertHandler() {
     lbs: 0.453592,
     kg: 1 / 0.453592,
     mi: 1.60934,
-    km: 1 / 1.60934,
+    km: 1 / 1.60934
   };
 
   // GET NUMBER
   this.getNum = function (input) {
-    const index = input.search(/[a-zA-Z]/);
+    if (!input) return 1;
 
-    if (index === -1) return NaN;
+    // only letters → default to 1
+    if (/^[a-zA-Z]+$/.test(input)) return 1;
 
-    const numPart = input.substring(0, index).trim();
+    // more than one slash → invalid
+    if (input.split("/").length > 2) return NaN;
 
-    if (numPart === "") return 1;
-
-    if (numPart.split("/").length > 2) return NaN;
-
-    if (numPart.includes("/")) {
-      const [a, b] = numPart.split("/");
+    // fraction
+    if (input.includes("/")) {
+      let [a, b] = input.split("/");
       if (isNaN(a) || isNaN(b)) return NaN;
       return parseFloat(a) / parseFloat(b);
     }
 
-    if (isNaN(numPart)) return NaN;
+    // normal number
+    if (isNaN(input)) return NaN;
 
-    return parseFloat(numPart);
+    return parseFloat(input);
   };
 
   // GET UNIT
   this.getUnit = function (input) {
-    const index = input.search(/[a-zA-Z]/);
-    if (index === -1) return null;
+    if (!input) return null;
+    input = input.toLowerCase();
 
-    const unitPart = input.substring(index).toLowerCase();
+    if (input === "l") return "L";
 
-    if (unitPart === "l") return "L";
-
-    return validUnits.includes(unitPart) ? unitMap[unitPart] : null;
+    return validUnits.includes(input) ? input : null;
   };
 
   this.getReturnUnit = function (initUnit) {
@@ -77,11 +66,11 @@ function ConvertHandler() {
   };
 
   this.spellOutUnit = function (unit) {
-    return spellOut[unit] || null;
+    return spelled[unit] || null;
   };
 
+  // CONVERSION
   this.convert = function (initNum, initUnit) {
-    if (!factors[initUnit]) return null;
     return parseFloat((initNum * factors[initUnit]).toFixed(5));
   };
 

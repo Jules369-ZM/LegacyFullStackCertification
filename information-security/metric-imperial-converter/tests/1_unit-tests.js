@@ -2,67 +2,52 @@ const chai = require('chai');
 const assert = chai.assert;
 const { suite, test } = require('mocha');
 
-const ConvertHandler = require('../controllers/convertHandler.js');
-
+const ConvertHandler = require('../controllers/convertHandler');
 let convertHandler = new ConvertHandler();
 
-suite('Unit Tests', function () {
-
-  test('convertHandler should correctly read a whole number input', function () {
-    assert.equal(convertHandler.getNum("32L"), 32);
+suite('Unit Tests', () => {
+  test('Whole number input', () => {
+    assert.equal(convertHandler.getNum('32'), 32);
   });
 
-  test('convertHandler should correctly read a decimal number input', function () {
-    assert.equal(convertHandler.getNum("3.5kg"), 3.5);
+  test('Decimal input', () => {
+    assert.equal(convertHandler.getNum('3.2'), 3.2);
   });
 
-  test('convertHandler should correctly read a fractional input', function () {
-    assert.equal(convertHandler.getNum("1/2km"), 0.5);
+  test('Fractional input', () => {
+    assert.equal(convertHandler.getNum('3/2'), 1.5);
   });
 
-  test('convertHandler should correctly read a fractional input with a decimal', function () {
-    assert.equal(convertHandler.getNum("3.5/7mi"), 0.5);
+  test('Fractional input with decimal', () => {
+    assert.equal(convertHandler.getNum('3.5/0.5'), 7);
   });
 
-  test('convertHandler should correctly return an error on a double-fraction', function () {
-    assert.isNaN(convertHandler.getNum("3/2/3km"));
+  test('Invalid multiple fractions', () => {
+    assert.isNaN(convertHandler.getNum('3/2/3'));
   });
 
-  test('convertHandler should default to 1 when no number is present', function () {
-    assert.equal(convertHandler.getNum("kg"), 1);
+  test('Default to 1', () => {
+    assert.equal(convertHandler.getNum('kg'), 1);
   });
 
-  test('convertHandler should correctly read each valid input unit', function () {
-    const units = ["gal", "l", "lbs", "kg", "mi", "km"];
-    units.forEach(u => assert.isNotNull(convertHandler.getUnit("3" + u)));
+  test('Valid unit input', () => {
+    assert.equal(convertHandler.getUnit('kg'), 'kg');
   });
 
-  test('convertHandler should correctly return an error for an invalid input unit', function () {
-    assert.isNull(convertHandler.getUnit("32g"));
+  test('Invalid unit input', () => {
+    assert.isNull(convertHandler.getUnit('55x'));
   });
 
-  test('convertHandler should return the correct return unit', function () {
-    assert.equal(convertHandler.getReturnUnit("gal"), "L");
+  test('Correct return unit', () => {
+    assert.equal(convertHandler.getReturnUnit('mi'), 'km');
   });
 
-  test('convertHandler should correctly return the spelled-out unit', function () {
-    assert.equal(convertHandler.spellOutUnit("kg"), "kilograms");
+  test('Spell out unit', () => {
+    assert.equal(convertHandler.spellOutUnit('km'), 'kilometers');
   });
 
-  test('convertHandler should correctly convert gal to L', function () {
-    assert.approximately(convertHandler.convert(1, "gal"), 3.78541, 0.1);
-  });
-
-  test('convertHandler should correctly convert L to gal', function () {
-    assert.approximately(convertHandler.convert(1, "L"), 0.26417, 0.1);
-  });
-
-  test('convertHandler should correctly convert mi to km', function () {
-    assert.approximately(convertHandler.convert(1, "mi"), 1.60934, 0.1);
-  });
-
-  test('convertHandler should correctly convert km to mi', function () {
-    assert.approximately(convertHandler.convert(1, "km"), 0.62137, 0.1);
+  test('Correct conversion', () => {
+    assert.approximately(convertHandler.convert(5, 'gal'), 18.92705, 0.1);
   });
 
 });

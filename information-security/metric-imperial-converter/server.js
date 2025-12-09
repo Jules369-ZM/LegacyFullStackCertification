@@ -1,29 +1,18 @@
 'use strict';
 
 const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-
-const apiRoutes = require('./routes/api');
-
 const app = express();
-
-app.use(cors({ origin: '*' }));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+const apiRoutes = require('./routes/api');
 
 app.use('/api', apiRoutes);
 
-// Not found middleware
 app.use((req, res) => {
-  res.status(404)
-    .type('text')
-    .send('Not Found');
+  res.status(404).send('Not Found');
 });
 
-// Start server (FCC uses this)
-const listener = app.listen(process.env.PORT || 3000, () => {
-  console.log('Your app is listening on port ' + listener.address().port);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log('Server running on port ' + port);
 });
 
 module.exports = app;
