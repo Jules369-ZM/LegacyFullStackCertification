@@ -18,12 +18,17 @@ router.get('/issues/:project', (req, res) => {
       if (key !== '_id' && key !== 'project') { // Skip _id and project as they're not filter fields
         const value = req.query[key];
 
+        // Skip empty values that shouldn't filter
+        if (value === '') continue;
+
         // Handle boolean conversion for 'open' field
         if (key === 'open') {
-          const boolValue = value === 'true' ? 1 : (value === 'false' ? 0 : value);
-          sql += ` AND ${key} = ?`;
-          params.push(boolValue);
-        } else {
+          const boolValue = value === 'true' ? 1 : (value === 'false' ? 0 : null);
+          if (boolValue !== null) {
+            sql += ` AND ${key} = ?`;
+            params.push(boolValue);
+          }
+        } else if (value !== undefined && value !== '') {
           sql += ` AND ${key} = ?`;
           params.push(value);
         }
@@ -35,10 +40,18 @@ router.get('/issues/:project', (req, res) => {
     // Execute the dynamic query
     const issues = db.prepare(sql).all(...params);
 
-    // Convert SQLite boolean values back to JavaScript booleans
+    // Convert SQLite boolean values back to JavaScript booleans and ensure all fields are present
     const processedIssues = issues.map(issue => ({
-      ...issue,
-      open: Boolean(issue.open)
+      _id: issue._id,
+      project: issue.project,
+      issue_title: issue.issue_title,
+      issue_text: issue.issue_text,
+      created_by: issue.created_by,
+      assigned_to: issue.assigned_to || '',
+      status_text: issue.status_text || '',
+      open: Boolean(issue.open),
+      created_on: issue.created_on,
+      updated_on: issue.updated_on
     }));
 
     res.json(processedIssues);
@@ -71,13 +84,14 @@ router.post('/issues/:project', (req, res) => {
     // Get the inserted issue to return
     const insertedIssue = statements.getIssueById.get(result.lastInsertRowid);
 
+    // Ensure all fields are present with empty strings if not provided
     res.json({
       _id: insertedIssue._id,
       issue_title: insertedIssue.issue_title,
       issue_text: insertedIssue.issue_text,
       created_by: insertedIssue.created_by,
-      assigned_to: insertedIssue.assigned_to,
-      status_text: insertedIssue.status_text,
+      assigned_to: insertedIssue.assigned_to || '',
+      status_text: insertedIssue.status_text || '',
       open: Boolean(insertedIssue.open),
       created_on: insertedIssue.created_on,
       updated_on: insertedIssue.updated_on
@@ -102,21 +116,21 @@ router.put('/issues/:project', (req, res) => {
       return res.json({ error: 'could not update', '_id': _id });
     }
 
-    // Check for update fields
+    // Check for update fields - all fields including empty strings
     const updateFields = { issue_title, issue_text, created_by, assigned_to, status_text, open };
-    const hasUpdateFields = Object.values(updateFields).some(value =>
-      value !== undefined && value !== ''
+    const hasUpdateFields = Object.keys(updateFields).some(key =>
+      updateFields[key] !== undefined
     );
 
     if (!hasUpdateFields) {
       return res.json({ error: 'no update field(s) sent', '_id': _id });
     }
 
-    // Prepare update values
+    // Prepare update values - allow setting to empty string
     const updateValues = [
-      issue_title !== undefined && issue_title !== '' ? issue_title : existingIssue.issue_title,
-      issue_text !== undefined && issue_text !== '' ? issue_text : existingIssue.issue_text,
-      created_by !== undefined && created_by !== '' ? created_by : existingIssue.created_by,
+      issue_title !== undefined ? issue_title : existingIssue.issue_title,
+      issue_text !== undefined ? issue_text : existingIssue.issue_text,
+      created_by !== undefined ? created_by : existingIssue.created_by,
       assigned_to !== undefined ? assigned_to : existingIssue.assigned_to,
       status_text !== undefined ? status_text : existingIssue.status_text,
       open !== undefined ? (open === 'true' || open === true ? 1 : 0) : existingIssue.open,
@@ -131,7 +145,11 @@ router.put('/issues/:project', (req, res) => {
       res.json({ error: 'could not update', '_id': _id });
     }
   } catch (error) {
-    res.json({ error: 'could not update', '_id': req.body._id });
+    // Make sure to return the _id in the error response
+    res.json({
+      error: 'could not update',
+      '_id': req.body._id || 'unknown'
+    });
   }
 });
 
@@ -158,7 +176,10 @@ router.delete('/issues/:project', (req, res) => {
       res.json({ error: 'could not delete', '_id': _id });
     }
   } catch (error) {
-    res.json({ error: 'could not delete', '_id': req.body._id });
+    res.json({
+      error: 'could not delete',
+      '_id': req.body._id || 'unknown'
+    });
   }
 });
 
