@@ -26,14 +26,16 @@ function ConvertHandler() {
   }
 
   this.getUnit = function(input) {
-    // check if input has a matching unit
-    let match = input.match(/(l|L|gal|kg|lbs|km|mi)$/)
-    if (match) {
-      let unit = match[0].toLowerCase()
-      return unit === 'l' ? 'L' : unit
-    } else {
-      throw 'invalid unit'
+    // check if input has a matching unit (longer units first)
+    const units = ['gal', 'lbs', 'km', 'kg', 'mi', 'l'];
+    const lowerInput = input.toLowerCase();
+
+    for (let unit of units) {
+      if (lowerInput.slice(-unit.length) === unit) {
+        return unit === 'l' ? 'L' : unit;
+      }
     }
+    throw 'invalid unit';
   }
 
   this.getReturnUnit = function(initUnit) {
