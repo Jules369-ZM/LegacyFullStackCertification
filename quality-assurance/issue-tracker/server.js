@@ -4,8 +4,8 @@ const bodyParser = require('body-parser');
 const apiRoutes = require('./routes/api');
 const runner = require('./test-runner');
 
-// Initialize database
-const { db } = require('./database');
+// Initialize MongoDB database
+const { connectDB } = require('./database-mongodb');
 
 const app = express();
 
@@ -17,8 +17,6 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-console.log('SQLite database initialized');
-
 // Routes
 app.get('/', (req, res) => {
   res.send('Issue Tracker API');
@@ -26,18 +24,27 @@ app.get('/', (req, res) => {
 
 app.use('/api', apiRoutes);
 
-// Start server and tests!
-const listener = app.listen(port, () => {
-  console.log(`Issue Tracker API listening on port ${port}`);
-  console.log('Running Tests...');
-  setTimeout(function () {
-    try {
-      runner.run();
-    } catch(e) {
-      console.log('Tests are not valid:');
-      console.error(e);
-    }
-  }, 1500);
-});
+// Connect to MongoDB and start server
+connectDB()
+  .then(() => {
+    console.log('MongoDB database initialized');
 
-module.exports = app;
+    const listener = app.listen(port, () => {
+      console.log(`Issue Tracker API listening on port ${port}`);
+      console.log('Running Tests...');
+      setTimeout(function () {
+        try {
+          runner.run();
+        } catch(e) {
+          console.log('Tests are not valid:');
+          console.error(e);
+        }
+      }, 1500);
+    });
+
+    module.exports = app;
+  })
+  .catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
+  });
