@@ -8,30 +8,16 @@ module.exports = function () {
   const convertHandler = new ConvertHandler();
 
   router.get('/convert', (req, res) => {
-    const input = req.query.input || '';
+    const input = req.query.input;
 
-    // Split number and unit at first letter
-    const index = input.search(/[a-zA-Z]/);
-    const numStr = index === -1 ? input : input.slice(0, index).trim();
-    const unitStr = index === -1 ? '' : input.slice(index).trim();
+    const number = convertHandler.getNum(input);
+    const unit = convertHandler.getUnit(input);
 
-    // NOTE: per FCC design, pass only the numeric substring to getNum
-    const number = convertHandler.getNum(numStr);
-    const unit = convertHandler.getUnit(unitStr);
-
-    const numberIsInvalid = isNaN(number);
-    const unitIsInvalid = unit === null;
-
-    if (numberIsInvalid && unitIsInvalid) {
-      // FCC expects this exact plain text
+    if (isNaN(number) && !unit) {
       return res.status(200).type('text').send('invalid number and unit');
     }
-    if (numberIsInvalid) {
-      return res.status(200).type('text').send('invalid number');
-    }
-    if (unitIsInvalid) {
-      return res.status(200).type('text').send('invalid unit');
-    }
+    if (isNaN(number)) return res.status(200).type('text').send('invalid number');
+    if (!unit) return res.status(200).type('text').send('invalid unit');
 
     const returnUnit = convertHandler.getReturnUnit(unit);
     const returnNum = convertHandler.convert(number, unit);
@@ -42,7 +28,7 @@ module.exports = function () {
       initUnit: unit,
       returnNum,
       returnUnit,
-      string
+      string,
     });
   });
 

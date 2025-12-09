@@ -1,83 +1,75 @@
 function ConvertHandler() {
-  const validUnits = ["gal", "L", "lbs", "kg", "mi", "km"];
+  const units = ['gal','l','lbs','kg','mi','km'];
 
   const returnUnitMap = {
-    gal: "L",
-    L: "gal",
-    lbs: "kg",
-    kg: "lbs",
-    mi: "km",
-    km: "mi"
+    gal: 'L',
+    L: 'gal',
+    lbs: 'kg',
+    kg: 'lbs',
+    mi: 'km',
+    km: 'mi'
   };
 
   const spelled = {
-    gal: "gallons",
-    L: "liters",
-    lbs: "pounds",
-    kg: "kilograms",
-    mi: "miles",
-    km: "kilometers"
+    gal: 'gallons',
+    L: 'liters',
+    lbs: 'pounds',
+    kg: 'kilograms',
+    mi: 'miles',
+    km: 'kilometers'
   };
 
   const factors = {
     gal: 3.78541,
-    L: 1 / 3.78541,
+    L: 1/3.78541,
     lbs: 0.453592,
-    kg: 1 / 0.453592,
+    kg: 1/0.453592,
     mi: 1.60934,
-    km: 1 / 1.60934
+    km: 1/1.60934
   };
 
-  // GET NUMBER
-  this.getNum = function (input) {
+  this.getNum = function(input) {
     if (!input) return 1;
+    const match = input.match(/^[\d\.\/]+/);
+    if (!match) return 1;
 
-    // only letters → default to 1
-    if (/^[a-zA-Z]+$/.test(input)) return 1;
+    const numStr = match[0];
+    if (numStr.split('/').length > 2) return NaN;
 
-    // more than one slash → invalid
-    if (input.split("/").length > 2) return NaN;
-
-    // fraction
-    if (input.includes("/")) {
-      let [a, b] = input.split("/");
+    if (numStr.includes('/')) {
+      let [a,b] = numStr.split('/');
       if (isNaN(a) || isNaN(b)) return NaN;
-      return parseFloat(a) / parseFloat(b);
+      return parseFloat(a)/parseFloat(b);
     }
 
-    // normal number
-    if (isNaN(input)) return NaN;
-
-    return parseFloat(input);
+    return isNaN(numStr) ? NaN : parseFloat(numStr);
   };
 
-  // GET UNIT
-  this.getUnit = function (input) {
+  this.getUnit = function(input) {
     if (!input) return null;
-    input = input.toLowerCase();
+    const match = input.match(/[a-zA-Z]+$/);
+    if (!match) return null;
 
-    if (input === "l") return "L";
+    let unit = match[0].toLowerCase();
+    if (unit === 'l') return 'L';
 
-    return validUnits.includes(input) ? input : null;
+    return units.includes(unit) ? unit : null;
   };
 
-  this.getReturnUnit = function (initUnit) {
-    return returnUnitMap[initUnit] || null;
+  this.getReturnUnit = function(unit) {
+    return returnUnitMap[unit];
   };
 
-  this.spellOutUnit = function (unit) {
-    return spelled[unit] || null;
+  this.spellOutUnit = function(unit) {
+    return spelled[unit];
   };
 
-  // CONVERSION
-  this.convert = function (initNum, initUnit) {
-    return parseFloat((initNum * factors[initUnit]).toFixed(5));
+  this.convert = function(num, unit) {
+    return parseFloat((num * factors[unit]).toFixed(5));
   };
 
-  this.getString = function (initNum, initUnit, returnNum, returnUnit) {
-    return `${initNum} ${this.spellOutUnit(
-      initUnit
-    )} converts to ${returnNum} ${this.spellOutUnit(returnUnit)}`;
+  this.getString = function(initNum, initUnit, returnNum, returnUnit) {
+    return `${initNum} ${this.spellOutUnit(initUnit)} converts to ${returnNum} ${this.spellOutUnit(returnUnit)}`;
   };
 }
 
