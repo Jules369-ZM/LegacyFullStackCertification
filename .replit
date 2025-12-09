@@ -47,6 +47,23 @@ waitForPort = 3000
 [workflows.workflow.metadata]
 outputType = "console"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Issue Tracker"
+
+[[workflows.workflow]]
+name = "Issue Tracker"
+author = "agent"
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd quality-assurance/issue-tracker && npm start"
+waitForPort = 3000
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[ports]]
 localPort = 3000
 externalPort = 3000
