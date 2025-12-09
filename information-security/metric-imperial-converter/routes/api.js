@@ -1,51 +1,46 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const ConvertHandler = require('../controllers/convertHandler');
+const ConvertHandler = require("../controllers/convertHandler");
 
-module.exports = function () {
-  const convertHandler = new ConvertHandler();
+const convertHandler = new ConvertHandler();
 
-  router.get('/convert', (req, res) => {
-    const input = req.query.input
+router.get("/convert", (req, res) => {
+  const input = req.query.input;
 
-    let initNum, initUnit
-    let numError = false, unitError = false
+  if (!input) return res.send("invalid number and unit");
 
-    try {
-      initNum = convertHandler.getNum(input)
-    } catch (error) {
-      numError = true
-    }
+  let initNum, initUnit;
+  let numError = false;
+  let unitError = false;
 
-    try {
-      initUnit = convertHandler.getUnit(input)
-    } catch (error) {
-      unitError = true
-    }
+  try {
+    initNum = convertHandler.getNum(input);
+  } catch (err) {
+    numError = true;
+  }
 
-    if (numError && unitError) {
-      return res.send('invalid number and unit')
-    }
-    if (numError) {
-      return res.send('invalid number')
-    }
-    if (unitError) {
-      return res.send('invalid unit')
-    }
+  try {
+    initUnit = convertHandler.getUnit(input);
+  } catch (err) {
+    unitError = true;
+  }
 
-    const returnNum = convertHandler.convert(initNum, initUnit)
-    const returnUnit = convertHandler.getReturnUnit(initUnit)
-    const string = convertHandler.getString(initNum, initUnit, returnNum, returnUnit)
-    res.json({
-      initNum,
-      initUnit,
-      returnNum,
-      returnUnit,
-      string
-    })
-  });
+  if (numError && unitError) return res.send("invalid number and unit");
+  if (numError) return res.send("invalid number");
+  if (unitError) return res.send("invalid unit");
 
-  return router;
-}();
+  const returnNum = convertHandler.convert(initNum, initUnit);
+  const returnUnit = convertHandler.getReturnUnit(initUnit);
+  const string = convertHandler.getString(
+    initNum,
+    initUnit,
+    returnNum,
+    returnUnit
+  );
+
+  res.json({ initNum, initUnit, returnNum, returnUnit, string });
+});
+
+module.exports = router;
