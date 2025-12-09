@@ -3,24 +3,70 @@
 function ConvertHandler() {
   const validUnits = ["gal", "L", "lbs", "kg", "mi", "km"];
 
+  // In convertHandler.js - UPDATE getNum method:
   this.getNum = function (input) {
-    if (!input) return 1;
-    const numMatch = input.match(/^[\d/.]+/);
-    const numStr = numMatch ? numMatch[0] : "";
-    if (!numStr) return 1;
+    // Find the unit first
+    const unitMatch = input.match(/[a-zA-Z]+$/);
+    if (!unitMatch) throw "invalid number";
 
-    if (numStr.includes("/")) {
-      const nums = numStr.split("/");
-      if (nums.length !== 2) throw "invalid number";
-      const numerator = parseFloat(nums[0]);
-      const denominator = parseFloat(nums[1]);
-      if (isNaN(numerator) || isNaN(denominator)) throw "invalid number";
-      return numerator / denominator;
-    } else {
-      const val = parseFloat(numStr);
-      if (isNaN(val)) throw "invalid number";
-      return val;
+    const unitIndex = unitMatch.index;
+    const numStr = input.substring(0, unitIndex).trim();
+
+    // If no number provided
+    if (!numStr || numStr === "") {
+      return 1;
     }
+
+    // Check for invalid double fractions like 3/2/3
+    if ((numStr.match(/\//g) || []).length > 1) {
+      throw "invalid number";
+    }
+
+    // Check for multiple decimals
+    if ((numStr.match(/\./g) || []).length > 1) {
+      throw "invalid number";
+    }
+
+    // Handle fractions
+    if (numStr.includes("/")) {
+      const parts = numStr.split("/");
+      if (parts.length !== 2) throw "invalid number";
+
+      const numerator = parts[0];
+      const denominator = parts[1];
+
+      // Check if both parts are valid numbers
+      if (
+        isNaN(numerator) ||
+        isNaN(denominator) ||
+        numerator.trim() === "" ||
+        denominator.trim() === ""
+      ) {
+        throw "invalid number";
+      }
+
+      const num = parseFloat(numerator);
+      const den = parseFloat(denominator);
+
+      if (den === 0) {
+        throw "invalid number";
+      }
+
+      const result = num / den;
+      if (isNaN(result) || !isFinite(result)) {
+        throw "invalid number";
+      }
+
+      return result;
+    }
+
+    // Handle decimals or whole numbers
+    const result = parseFloat(numStr);
+    if (isNaN(result) || !isFinite(result)) {
+      throw "invalid number";
+    }
+
+    return result;
   };
 
   this.getUnit = function (input) {
