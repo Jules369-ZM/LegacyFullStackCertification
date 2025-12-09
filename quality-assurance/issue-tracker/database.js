@@ -1,4 +1,6 @@
+// database.js - SQLite with MongoDB-style ObjectIds
 const Database = require('better-sqlite3');
+const { ObjectId } = require('mongodb'); // Only for ObjectId generation
 
 // Create database connection
 const db = new Database('./issues.db', { verbose: console.log });
@@ -10,7 +12,7 @@ db.exec(`
 
 db.exec(`
   CREATE TABLE issues (
-    _id INTEGER PRIMARY KEY AUTOINCREMENT,
+    _id TEXT PRIMARY KEY,
     project TEXT NOT NULL,
     issue_title TEXT NOT NULL,
     issue_text TEXT NOT NULL,
@@ -23,12 +25,21 @@ db.exec(`
   )
 `);
 
+// Create a trigger to update updated_on automatically
+db.exec(`
+  CREATE TRIGGER IF NOT EXISTS update_issues_timestamp
+  AFTER UPDATE ON issues
+  BEGIN
+    UPDATE issues SET updated_on = CURRENT_TIMESTAMP WHERE _id = NEW._id;
+  END;
+`);
+
 // Prepared statements for better performance
 const statements = {
-  // Insert new issue
+  // Insert new issue with MongoDB-style ObjectId
   insertIssue: db.prepare(`
-    INSERT INTO issues (project, issue_title, issue_text, created_by, assigned_to, status_text)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO issues (_id, project, issue_title, issue_text, created_by, assigned_to, status_text, open)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
   `),
 
   // Get issue by ID
@@ -44,18 +55,23 @@ const statements = {
       created_by = ?,
       assigned_to = ?,
       status_text = ?,
-      open = ?,
-      updated_on = CURRENT_TIMESTAMP
+      open = ?
     WHERE _id = ?
   `),
 
   // Delete issue
   deleteIssue: db.prepare(`
     DELETE FROM issues WHERE _id = ?
+  `),
+
+  // Get issues by project with filters
+  getIssuesByProject: db.prepare(`
+    SELECT * FROM issues WHERE project = ? ORDER BY created_on DESC
   `)
 };
 
 module.exports = {
   db,
-  statements
+  statements,
+  ObjectId
 };

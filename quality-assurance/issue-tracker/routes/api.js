@@ -1,12 +1,11 @@
 const express = require('express');
-const { ObjectId } = require('mongodb');
-const { getDB } = require('../database-mongodb');
+const { statements, ObjectId, db } = require('../database');
 const router = express.Router();
 
 // Helper function to validate ObjectId
 function isValidObjectId(id) {
   try {
-    return ObjectId.isValid(id) && new ObjectId(id).toString() === id;
+    return ObjectId.isValid(id);
   } catch (error) {
     return false;
   }
@@ -15,54 +14,47 @@ function isValidObjectId(id) {
 // Helper function to format issue response
 function formatIssue(issue) {
   return {
-    _id: issue._id.toString(),
+    _id: issue._id,
     issue_title: issue.issue_title,
     issue_text: issue.issue_text,
     created_on: issue.created_on,
     updated_on: issue.updated_on,
     created_by: issue.created_by,
     assigned_to: issue.assigned_to || '',
-    open: issue.open !== false, // Default to true if not set
+    open: issue.open === 1, // SQLite stores as 1/0
     status_text: issue.status_text || ''
   };
 }
 
 // GET /api/issues/:project
-router.get('/issues/:project', async (req, res) => {
+router.get('/issues/:project', (req, res) => {
   try {
-    const db = getDB();
     const project = req.params.project;
 
-    // Build filter object
-    const filter = { project };
+    // Build query based on filters
+    let sql = 'SELECT * FROM issues WHERE project = ?';
+    const params = [project];
 
-    // Add query filters
+    // Add filters from query parameters
     const validFilters = ['issue_title', 'issue_text', 'created_by', 'assigned_to', 'status_text', 'open'];
 
-    validFilters.forEach(field => {
+    validFilters.forEach((field, index) => {
       if (req.query[field] !== undefined) {
         if (field === 'open') {
-          // Convert string 'true'/'false' to boolean
-          filter[field] = req.query[field] === 'true';
+          const isOpen = req.query[field] === 'true';
+          sql += ` AND open = ?`;
+          params.push(isOpen ? 1 : 0);
         } else {
-          filter[field] = req.query[field];
+          sql += ` AND ${field} = ?`;
+          params.push(req.query[field]);
         }
       }
     });
 
-    // For optional fields that should match empty string
-    if (req.query.assigned_to === '') {
-      filter.assigned_to = '';
-    }
+    sql += ' ORDER BY created_on DESC';
 
-    if (req.query.status_text === '') {
-      filter.status_text = '';
-    }
-
-    const issues = await db.collection('issues')
-      .find(filter)
-      .sort({ created_on: -1 })
-      .toArray();
+    const stmt = db.prepare(sql);
+    const issues = stmt.all(...params);
 
     const formattedIssues = issues.map(formatIssue);
     res.json(formattedIssues);
@@ -72,9 +64,8 @@ router.get('/issues/:project', async (req, res) => {
 });
 
 // POST /api/issues/:project
-router.post('/issues/:project', async (req, res) => {
+router.post('/issues/:project', (req, res) => {
   try {
-    const db = getDB();
     const project = req.params.project;
 
     const {
@@ -90,21 +81,22 @@ router.post('/issues/:project', async (req, res) => {
       return res.json({ error: 'required field(s) missing' });
     }
 
-    const now = new Date();
-    const issue = {
+    // Generate MongoDB-style ObjectId
+    const mongoId = new ObjectId().toString();
+
+    // Insert the issue
+    statements.insertIssue.run(
+      mongoId,
       project,
       issue_title,
       issue_text,
       created_by,
       assigned_to,
-      status_text,
-      open: true,
-      created_on: now,
-      updated_on: now
-    };
+      status_text
+    );
 
-    const result = await db.collection('issues').insertOne(issue);
-    const insertedIssue = await db.collection('issues').findOne({ _id: result.insertedId });
+    // Get the inserted issue
+    const insertedIssue = statements.getIssueById.get(mongoId);
 
     res.json(formatIssue(insertedIssue));
   } catch (error) {
@@ -113,9 +105,8 @@ router.post('/issues/:project', async (req, res) => {
 });
 
 // PUT /api/issues/:project
-router.put('/issues/:project', async (req, res) => {
+router.put('/issues/:project', (req, res) => {
   try {
-    const db = getDB();
     const { _id, ...updateFields } = req.body;
 
     // Check for _id
@@ -129,7 +120,7 @@ router.put('/issues/:project', async (req, res) => {
     }
 
     // Check if issue exists
-    const existingIssue = await db.collection('issues').findOne({ _id: new ObjectId(_id) });
+    const existingIssue = statements.getIssueById.get(_id);
     if (!existingIssue) {
       return res.json({ error: 'could not update', '_id': _id });
     }
@@ -141,7 +132,7 @@ router.put('/issues/:project', async (req, res) => {
     validFields.forEach(field => {
       if (updateFields[field] !== undefined) {
         if (field === 'open') {
-          fieldsToUpdate[field] = updateFields[field] === true || updateFields[field] === 'true';
+          fieldsToUpdate[field] = updateFields[field] === true || updateFields[field] === 'true' ? 1 : 0;
         } else {
           fieldsToUpdate[field] = updateFields[field];
         }
@@ -153,15 +144,21 @@ router.put('/issues/:project', async (req, res) => {
       return res.json({ error: 'no update field(s) sent', '_id': _id });
     }
 
-    // Add updated_on timestamp
-    fieldsToUpdate.updated_on = new Date();
+    // Prepare update values
+    const updateValues = [
+      fieldsToUpdate.issue_title !== undefined ? fieldsToUpdate.issue_title : existingIssue.issue_title,
+      fieldsToUpdate.issue_text !== undefined ? fieldsToUpdate.issue_text : existingIssue.issue_text,
+      fieldsToUpdate.created_by !== undefined ? fieldsToUpdate.created_by : existingIssue.created_by,
+      fieldsToUpdate.assigned_to !== undefined ? fieldsToUpdate.assigned_to : existingIssue.assigned_to,
+      fieldsToUpdate.status_text !== undefined ? fieldsToUpdate.status_text : existingIssue.status_text,
+      fieldsToUpdate.open !== undefined ? fieldsToUpdate.open : existingIssue.open,
+      _id
+    ];
 
-    const result = await db.collection('issues').updateOne(
-      { _id: new ObjectId(_id) },
-      { $set: fieldsToUpdate }
-    );
+    // Update the issue
+    const result = statements.updateIssue.run(...updateValues);
 
-    if (result.modifiedCount > 0) {
+    if (result.changes > 0) {
       res.json({ result: 'successfully updated', '_id': _id });
     } else {
       res.json({ error: 'could not update', '_id': _id });
@@ -172,9 +169,8 @@ router.put('/issues/:project', async (req, res) => {
 });
 
 // DELETE /api/issues/:project
-router.delete('/issues/:project', async (req, res) => {
+router.delete('/issues/:project', (req, res) => {
   try {
-    const db = getDB();
     const { _id } = req.body;
 
     if (!_id) {
@@ -187,14 +183,15 @@ router.delete('/issues/:project', async (req, res) => {
     }
 
     // Check if issue exists
-    const existingIssue = await db.collection('issues').findOne({ _id: new ObjectId(_id) });
+    const existingIssue = statements.getIssueById.get(_id);
     if (!existingIssue) {
       return res.json({ error: 'could not delete', '_id': _id });
     }
 
-    const result = await db.collection('issues').deleteOne({ _id: new ObjectId(_id) });
+    // Delete the issue
+    const result = statements.deleteIssue.run(_id);
 
-    if (result.deletedCount > 0) {
+    if (result.changes > 0) {
       res.json({ result: 'successfully deleted', '_id': _id });
     } else {
       res.json({ error: 'could not delete', '_id': _id });
