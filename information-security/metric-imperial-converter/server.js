@@ -54,8 +54,12 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Metric-Imperial Converter API listening on port ${PORT}`);
-});
+
+// Only start server if this file is run directly (not required as module)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Metric-Imperial Converter API listening on port ${PORT}`);
+  });
+}
 
 module.exports = app;
