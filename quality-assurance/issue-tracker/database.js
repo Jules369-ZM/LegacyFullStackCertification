@@ -3,9 +3,13 @@ const Database = require('better-sqlite3');
 // Create database connection
 const db = new Database('./issues.db', { verbose: console.log });
 
-// Create issues table
+// Drop and recreate table to ensure correct schema
 db.exec(`
-  CREATE TABLE IF NOT EXISTS issues (
+  DROP TABLE IF EXISTS issues;
+`);
+
+db.exec(`
+  CREATE TABLE issues (
     _id INTEGER PRIMARY KEY AUTOINCREMENT,
     project TEXT NOT NULL,
     issue_title TEXT NOT NULL,
