@@ -3,9 +3,14 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+require('dotenv').config();
+
 const apiRoutes = require("./routes/api");
+const fccTestingRoutes = require('./routes/fcctesting');
 
 const app = express();
+
+app.use('/public', express.static(process.cwd() + '/public'));
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -13,6 +18,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // API routes
 app.use("/api", apiRoutes);
+
+// FCC testing routes
+fccTestingRoutes(app);
 
 // Root route (instructions page)
 app.get("/", (req, res) => {
