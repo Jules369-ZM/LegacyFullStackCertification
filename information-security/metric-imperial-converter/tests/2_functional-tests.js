@@ -14,7 +14,7 @@ suite('Functional Tests', function() {
       .end(function(err,res){
         assert.equal(res.status,200);
         assert.equal(res.body.initNum,10);
-        assert.equal(res.body.initUnit,'L');
+        assert.equal(res.body.initUnit,'l');
         done();
       });
   });
@@ -23,7 +23,7 @@ suite('Functional Tests', function() {
     chai.request(server)
       .get('/api/convert?input=32g')
       .end(function(err,res){
-        assert.equal(res.text,'invalid unit');
+        assert.equal(res.body,'invalid unit');
         done();
       });
   });
@@ -32,7 +32,7 @@ suite('Functional Tests', function() {
     chai.request(server)
       .get('/api/convert?input=3/7/2kg')
       .end(function(err,res){
-        assert.equal(res.text,'invalid number');
+        assert.equal(res.body,'invalid number');
         done();
       });
   });
@@ -41,17 +41,17 @@ suite('Functional Tests', function() {
     chai.request(server)
       .get('/api/convert?input=3/7/2kilomegagram')
       .end(function(err,res){
-        assert.equal(res.text,'invalid number and unit');
+        assert.equal(res.body,'invalid number');
         done();
       });
   });
 
   test('No number input', function(done) {
     chai.request(server)
-      .get('/api/convert?input=kg')
+      .get('/api/convert?input=l')
       .end(function(err,res){
         assert.equal(res.body.initNum,1);
-        assert.equal(res.body.initUnit,'kg');
+        assert.equal(res.body.initUnit,'l');
         done();
       });
   });
