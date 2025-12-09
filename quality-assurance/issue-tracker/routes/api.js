@@ -1,37 +1,47 @@
 const express = require('express');
-const { statements } = require('../database');
+const { statements, db } = require('../database');
 const router = express.Router();
 
 // GET /api/issues/:project
 router.get('/issues/:project', (req, res) => {
   try {
     const project = req.params.project;
-    let issues = [];
 
-    // Handle different filter combinations
-    const openFilter = req.query.open;
-    const createdByFilter = req.query.created_by;
+    // Build dynamic SQL query based on query parameters
+    let sql = 'SELECT * FROM issues WHERE project = ?';
+    let params = [project];
 
-    if (openFilter !== undefined && createdByFilter) {
-      // Multiple filters: open and created_by
-      const openValue = openFilter === 'true' ? 1 : 0;
-      issues = statements.getMultiFilteredIssues.all(project, openValue, createdByFilter);
-    } else if (openFilter !== undefined) {
-      // Single filter: open
-      const openValue = openFilter === 'true' ? 1 : 0;
-      issues = statements.getFilteredIssues.all(project, openValue);
-    } else {
-      // No filters
-      issues = statements.getIssues.all(project);
+    // Get all query parameters except those that shouldn't be used for filtering
+    const queryKeys = Object.keys(req.query);
+
+    for (const key of queryKeys) {
+      if (key !== '_id' && key !== 'project') { // Skip _id and project as they're not filter fields
+        const value = req.query[key];
+
+        // Handle boolean conversion for 'open' field
+        if (key === 'open') {
+          const boolValue = value === 'true' ? 1 : (value === 'false' ? 0 : value);
+          sql += ` AND ${key} = ?`;
+          params.push(boolValue);
+        } else {
+          sql += ` AND ${key} = ?`;
+          params.push(value);
+        }
+      }
     }
 
+    sql += ' ORDER BY created_on DESC';
+
+    // Execute the dynamic query
+    const issues = db.prepare(sql).all(...params);
+
     // Convert SQLite boolean values back to JavaScript booleans
-    issues = issues.map(issue => ({
+    const processedIssues = issues.map(issue => ({
       ...issue,
       open: Boolean(issue.open)
     }));
 
-    res.json(issues);
+    res.json(processedIssues);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

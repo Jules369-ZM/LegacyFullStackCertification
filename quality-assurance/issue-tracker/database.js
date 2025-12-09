@@ -27,21 +27,6 @@ const statements = {
     VALUES (?, ?, ?, ?, ?, ?)
   `),
 
-  // Get all issues for a project (with optional filters)
-  getIssues: db.prepare(`
-    SELECT * FROM issues WHERE project = ? ORDER BY created_on DESC
-  `),
-
-  // Get filtered issues
-  getFilteredIssues: db.prepare(`
-    SELECT * FROM issues WHERE project = ? AND open = ? ORDER BY created_on DESC
-  `),
-
-  // Get issues with multiple filters
-  getMultiFilteredIssues: db.prepare(`
-    SELECT * FROM issues WHERE project = ? AND open = ? AND created_by = ? ORDER BY created_on DESC
-  `),
-
   // Get issue by ID
   getIssueById: db.prepare(`
     SELECT * FROM issues WHERE _id = ?

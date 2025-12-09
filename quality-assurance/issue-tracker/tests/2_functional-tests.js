@@ -134,6 +134,20 @@ suite('Functional Tests', function() {
         });
     });
 
+    test('View issues on a project with arbitrary field filter: GET request to /api/issues/{project}', function(done) {
+      chai
+        .request(server)
+        .get('/api/issues/test-project?assigned_to=Test Assignee')
+        .end(function(err, res) {
+          expect(res).to.have.status(200);
+          expect(res.body).to.be.an('array');
+          res.body.forEach(issue => {
+            expect(issue).to.have.property('assigned_to', 'Test Assignee');
+          });
+          done();
+        });
+    });
+
   });
 
   suite('PUT /api/issues/{project} => text', function() {
