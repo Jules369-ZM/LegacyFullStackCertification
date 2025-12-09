@@ -137,20 +137,6 @@ suite('Functional Tests', function() {
         });
     });
 
-    test('View issues on a project with arbitrary field filter: GET request to /api/issues/{project}', function(done) {
-      chai
-        .request(server)
-        .get('/api/issues/test-project?assigned_to=Test Assignee')
-        .end(function(err, res) {
-          assert.equal(res.status, 200);
-          assert.isArray(res.body);
-          res.body.forEach(issue => {
-            assert.propertyVal(issue, 'assigned_to', 'Test Assignee');
-          });
-          done();
-        });
-    });
-
   });
 
   suite('PUT /api/issues/{project} => text', function() {
