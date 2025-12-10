@@ -22,7 +22,7 @@ async function connectDB() {
       // Create issues table if it doesn't exist
       await client.query(`
         CREATE TABLE IF NOT EXISTS issues (
-          _id SERIAL PRIMARY KEY,
+          _id TEXT PRIMARY KEY,
           project TEXT NOT NULL,
           issue_title TEXT NOT NULL,
           issue_text TEXT NOT NULL,
