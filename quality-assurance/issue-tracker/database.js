@@ -8,6 +8,7 @@ const db = new Database('./issues.db', { verbose: console.log });
 // Drop and recreate table to ensure correct schema
 db.exec(`
   DROP TABLE IF EXISTS issues;
+  DROP TRIGGER IF EXISTS update_issues_timestamp;
 `);
 
 db.exec(`
@@ -27,7 +28,7 @@ db.exec(`
 
 // Create a trigger to update updated_on automatically
 db.exec(`
-  CREATE TRIGGER IF NOT EXISTS update_issues_timestamp
+  CREATE TRIGGER update_issues_timestamp
   AFTER UPDATE ON issues
   BEGIN
     UPDATE issues SET updated_on = CURRENT_TIMESTAMP WHERE _id = NEW._id;

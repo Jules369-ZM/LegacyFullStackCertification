@@ -35,31 +35,25 @@ router.get('/issues/:project', (req, res) => {
     let sql = 'SELECT * FROM issues WHERE project = ?';
     const params = [project];
 
-    // List of all valid filter fields
-    const filterFields = [
-      'issue_title',
-      'issue_text',
-      'created_by',
-      'assigned_to',
-      'status_text',
-      'open'
-    ];
+    // Process ALL query parameters that could be filters
+    const queryKeys = Object.keys(req.query);
 
-    // Process each filter field
-    filterFields.forEach(field => {
-      if (req.query[field] !== undefined) {
-        if (field === 'open') {
-          // Handle boolean open field
-          if (req.query[field] === 'true') {
-            sql += ' AND open = 1';
-          } else if (req.query[field] === 'false') {
-            sql += ' AND open = 0';
-          }
-        } else {
-          // Handle string fields - allow filtering by empty strings too
-          sql += ` AND ${field} = ?`;
-          params.push(req.query[field]);
+    queryKeys.forEach(key => {
+      // Skip if this is not a valid field or if value is undefined
+      if (req.query[key] === undefined) return;
+
+      // Handle 'open' field specially
+      if (key === 'open') {
+        if (req.query[key] === 'true') {
+          sql += ' AND open = 1';
+        } else if (req.query[key] === 'false') {
+          sql += ' AND open = 0';
         }
+      }
+      // Handle all other fields - including empty strings
+      else if (['issue_title', 'issue_text', 'created_by', 'assigned_to', 'status_text', '_id'].includes(key)) {
+        sql += ` AND ${key} = ?`;
+        params.push(req.query[key]);
       }
     });
 
