@@ -12,27 +12,40 @@ let db;
 
 async function connectDB() {
   if (!client) {
-    // Configure MongoDB client with SSL options for Replit compatibility
-    const options = {
-      // SSL/TLS options for MongoDB Atlas
-      tls: true,
-      tlsAllowInvalidCertificates: true,
-      tlsAllowInvalidHostnames: true,
-      // Connection timeout
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 10000,
-    };
+    // Try different connection approaches for Replit compatibility
+    let connectionOptions = {};
 
-    // Only add SSL options for MongoDB Atlas (mongodb+srv) connections
     if (uri.includes('mongodb+srv')) {
-      client = new MongoClient(uri, options);
-    } else {
-      client = new MongoClient(uri);
+      // For MongoDB Atlas, try minimal SSL options
+      connectionOptions = {
+        tls: true,
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 10000,
+      };
     }
 
-    await client.connect();
-    db = client.db(dbName);
-    console.log('Connected to MongoDB');
+    try {
+      client = new MongoClient(uri, connectionOptions);
+      await client.connect();
+      db = client.db(dbName);
+      console.log('Connected to MongoDB');
+    } catch (error) {
+      console.error('MongoDB connection failed, trying alternative approach:', error.message);
+
+      // Try without SSL for local MongoDB or alternative setups
+      try {
+        client = new MongoClient(uri.replace('mongodb+srv', 'mongodb'), {
+          tls: false,
+          serverSelectionTimeoutMS: 5000,
+        });
+        await client.connect();
+        db = client.db(dbName);
+        console.log('Connected to MongoDB (without SSL)');
+      } catch (secondError) {
+        console.error('All MongoDB connection attempts failed');
+        throw secondError;
+      }
+    }
   }
   return db;
 }
