@@ -12,38 +12,61 @@ let db;
 
 async function connectDB() {
   if (!client) {
-    // Try different connection approaches for Replit compatibility
-    let connectionOptions = {};
+    // Try multiple connection strategies for Replit compatibility
 
-    if (uri.includes('mongodb+srv')) {
-      // For MongoDB Atlas, try minimal SSL options
-      connectionOptions = {
-        tls: true,
-        serverSelectionTimeoutMS: 5000,
-        connectTimeoutMS: 10000,
-      };
-    }
-
+    // Strategy 1: Try with minimal SSL options
     try {
-      client = new MongoClient(uri, connectionOptions);
+      console.log('Trying MongoDB connection with minimal SSL...');
+      const options1 = {
+        tls: true,
+        tlsAllowInvalidCertificates: true,
+        tlsAllowInvalidHostnames: true,
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 15000,
+      };
+
+      client = new MongoClient(uri, options1);
       await client.connect();
       db = client.db(dbName);
-      console.log('Connected to MongoDB');
-    } catch (error) {
-      console.error('MongoDB connection failed, trying alternative approach:', error.message);
+      console.log('✅ Connected to MongoDB successfully');
+      return db;
+    } catch (error1) {
+      console.log('❌ Minimal SSL connection failed:', error1.message);
 
-      // Try without SSL for local MongoDB or alternative setups
+      // Strategy 2: Try without SSL
       try {
-        client = new MongoClient(uri.replace('mongodb+srv', 'mongodb'), {
+        console.log('Trying MongoDB connection without SSL...');
+        const noSslUri = uri.replace('mongodb+srv://', 'mongodb://').replace('?retryWrites=true&w=majority', '');
+        const options2 = {
           tls: false,
-          serverSelectionTimeoutMS: 5000,
-        });
+          serverSelectionTimeoutMS: 10000,
+        };
+
+        client = new MongoClient(noSslUri, options2);
         await client.connect();
         db = client.db(dbName);
-        console.log('Connected to MongoDB (without SSL)');
-      } catch (secondError) {
-        console.error('All MongoDB connection attempts failed');
-        throw secondError;
+        console.log('✅ Connected to MongoDB without SSL');
+        return db;
+      } catch (error2) {
+        console.log('❌ No-SSL connection failed:', error2.message);
+
+        // Strategy 3: Try localhost as last resort (for FreeCodeCamp)
+        try {
+          console.log('Trying localhost MongoDB...');
+          const options3 = {
+            serverSelectionTimeoutMS: 5000,
+          };
+
+          client = new MongoClient('mongodb://localhost:27017', options3);
+          await client.connect();
+          db = client.db('issue-tracker');
+          console.log('✅ Connected to local MongoDB');
+          return db;
+        } catch (error3) {
+          console.log('❌ Localhost connection failed:', error3.message);
+          console.error('All MongoDB connection strategies failed');
+          throw new Error('Unable to connect to MongoDB. Please check your connection string and network.');
+        }
       }
     }
   }
