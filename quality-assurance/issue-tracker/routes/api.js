@@ -1,10 +1,10 @@
 const express = require('express');
-const { connectDB, ObjectId } = require('../database');
+const { connectDB, generateId } = require('../database');
 const router = express.Router();
 
-// Helper function to validate ObjectId
-function isValidObjectId(id) {
-  return ObjectId.isValid(id) && typeof id === 'string' && id.length === 24;
+// Helper function to validate ID (simple string validation)
+function isValidId(id) {
+  return typeof id === 'string' && id.length > 0;
 }
 
 // Helper function to format issue response
@@ -28,30 +28,35 @@ router.get('/issues/:project', async (req, res) => {
     const db = await connectDB();
     const project = req.params.project;
 
-    // Build query object
-    const query = { project };
+    // Build WHERE clause
+    let whereConditions = ['project = $1'];
+    let queryParams = [project];
+    let paramIndex = 2;
 
     // Process query parameters for filtering
     Object.keys(req.query).forEach(key => {
       if (req.query[key] !== undefined) {
         if (key === 'open') {
           // Handle boolean conversion for open field
-          query[key] = req.query[key] === 'true';
+          whereConditions.push(`open = $${paramIndex}`);
+          queryParams.push(req.query[key] === 'true');
         } else {
           // Handle other fields including _id
-          query[key] = req.query[key];
+          whereConditions.push(`${key} = $${paramIndex}`);
+          queryParams.push(req.query[key]);
         }
+        paramIndex++;
       }
     });
 
-    const issues = await db.collection('issues')
-      .find(query)
-      .sort({ created_on: -1 })
-      .toArray();
+    const whereClause = whereConditions.join(' AND ');
+    const query = `SELECT * FROM issues WHERE ${whereClause} ORDER BY created_on DESC`;
 
-    const formattedIssues = issues.map(formatIssue);
+    const result = await db.query(query, queryParams);
+    const formattedIssues = result.rows.map(formatIssue);
     res.json(formattedIssues);
   } catch (error) {
+    console.error('GET issues error:', error);
     // Return empty array if database error
     res.json([]);
   }
@@ -76,24 +81,23 @@ router.post('/issues/:project', async (req, res) => {
       return res.json({ error: 'required field(s) missing' });
     }
 
-    const now = new Date();
-    const issue = {
-      project,
-      issue_title,
-      issue_text,
-      created_by,
-      assigned_to,
-      status_text,
-      open: true,
-      created_on: now,
-      updated_on: now
-    };
+    // Generate a unique ID
+    const issueId = generateId();
 
-    const result = await db.collection('issues').insertOne(issue);
-    const insertedIssue = await db.collection('issues').findOne({ _id: result.insertedId });
+    const query = `
+      INSERT INTO issues (_id, project, issue_title, issue_text, created_by, assigned_to, status_text, open)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `;
+
+    const values = [issueId, project, issue_title, issue_text, created_by, assigned_to, status_text, true];
+
+    const result = await db.query(query, values);
+    const insertedIssue = result.rows[0];
 
     res.json(formatIssue(insertedIssue));
   } catch (error) {
+    console.error('POST issue error:', error);
     // Return error object if database operation fails
     res.json({ error: 'could not create issue' });
   }
@@ -110,21 +114,19 @@ router.put('/issues/:project', async (req, res) => {
       return res.json({ error: 'missing _id' });
     }
 
-    // 2. Check if _id is a valid MongoDB ObjectId format
-    if (!isValidObjectId(_id)) {
+    // 2. Check if _id is valid
+    if (!isValidId(_id)) {
       return res.json({ error: 'could not update', '_id': _id });
     }
 
-    const objectId = new ObjectId(_id);
-
     // 3. Check if the issue exists
-    const existingIssue = await db.collection('issues').findOne({ _id: objectId });
-    if (!existingIssue) {
+    const checkQuery = 'SELECT * FROM issues WHERE _id = $1';
+    const checkResult = await db.query(checkQuery, [_id]);
+    if (checkResult.rows.length === 0) {
       return res.json({ error: 'could not update', '_id': _id });
     }
 
     // 4. Check if any update fields were sent
-    const updateFields = {};
     const validUpdateFields = [
       'issue_title',
       'issue_text',
@@ -135,14 +137,21 @@ router.put('/issues/:project', async (req, res) => {
     ];
 
     let hasUpdateFields = false;
+    let setParts = [];
+    let values = [_id];
+    let paramIndex = 2;
+
     validUpdateFields.forEach(field => {
       if (req.body[field] !== undefined) {
         if (field === 'open') {
-          updateFields[field] = req.body[field] === true || req.body[field] === 'true';
+          setParts.push(`${field} = $${paramIndex}`);
+          values.push(req.body[field] === true || req.body[field] === 'true');
         } else {
-          updateFields[field] = req.body[field];
+          setParts.push(`${field} = $${paramIndex}`);
+          values.push(req.body[field]);
         }
         hasUpdateFields = true;
+        paramIndex++;
       }
     });
 
@@ -151,20 +160,19 @@ router.put('/issues/:project', async (req, res) => {
     }
 
     // Add updated_on timestamp
-    updateFields.updated_on = new Date();
+    setParts.push(`updated_on = CURRENT_TIMESTAMP`);
 
     // Update the issue
-    const result = await db.collection('issues').updateOne(
-      { _id: objectId },
-      { $set: updateFields }
-    );
+    const updateQuery = `UPDATE issues SET ${setParts.join(', ')} WHERE _id = $1`;
+    const result = await db.query(updateQuery, values);
 
-    if (result.modifiedCount > 0) {
+    if (result.rowCount > 0) {
       res.json({ result: 'successfully updated', '_id': _id });
     } else {
       res.json({ error: 'could not update', '_id': _id });
     }
   } catch (error) {
+    console.error('PUT issue error:', error);
     res.json({ error: 'could not update', '_id': _id });
   }
 });
@@ -179,28 +187,29 @@ router.delete('/issues/:project', async (req, res) => {
       return res.json({ error: 'missing _id' });
     }
 
-    // Check if _id is valid ObjectId
-    if (!isValidObjectId(_id)) {
+    // Check if _id is valid
+    if (!isValidId(_id)) {
       return res.json({ error: 'could not delete', '_id': _id });
     }
 
-    const objectId = new ObjectId(_id);
-
     // Check if issue exists
-    const existingIssue = await db.collection('issues').findOne({ _id: objectId });
-    if (!existingIssue) {
+    const checkQuery = 'SELECT * FROM issues WHERE _id = $1';
+    const checkResult = await db.query(checkQuery, [_id]);
+    if (checkResult.rows.length === 0) {
       return res.json({ error: 'could not delete', '_id': _id });
     }
 
     // Delete the issue
-    const result = await db.collection('issues').deleteOne({ _id: objectId });
+    const deleteQuery = 'DELETE FROM issues WHERE _id = $1';
+    const result = await db.query(deleteQuery, [_id]);
 
-    if (result.deletedCount > 0) {
+    if (result.rowCount > 0) {
       res.json({ result: 'successfully deleted', '_id': _id });
     } else {
       res.json({ error: 'could not delete', '_id': _id });
     }
   } catch (error) {
+    console.error('DELETE issue error:', error);
     res.json({ error: 'could not delete', '_id': _id });
   }
 });

@@ -9,7 +9,7 @@
     "test": "cross-env NODE_ENV=test mocha ./tests/ --timeout 5000 --exit",
     "test:fcc": "cross-env NODE_ENV=test mocha ./fcc-test-simulator.js --timeout 10000 --exit",
     "start-server": "node server.js",
-    "check-mongo": "node check-mongo.js"
+    "check-db": "node check-mongo.js"
   },
   "keywords": [
     "api",
@@ -23,7 +23,7 @@
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "mongodb": "^6.21.0"
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "chai": "^4.3.10",

@@ -3,11 +3,11 @@
 // Load environment variables from .env file
 require('dotenv').config();
 
-// Script to check MongoDB connection and environment variables
-console.log('🔍 Checking MongoDB Environment...\n');
+// Script to check PostgreSQL connection and environment variables
+console.log('🔍 Checking PostgreSQL Database Environment...\n');
 
 // Check environment variables
-const envVars = ['MONGODB_URI', 'MONGO_URI', 'DATABASE_URL'];
+const envVars = ['DATABASE_URL', 'MONGODB_URI', 'MONGO_URI'];
 console.log('📋 Environment Variables:');
 envVars.forEach(varName => {
   const value = process.env[varName];
@@ -18,88 +18,70 @@ envVars.forEach(varName => {
   }
 });
 
-// Try to connect to MongoDB
-const { MongoClient } = require('mongodb');
+// Try to connect to PostgreSQL
+const { Pool } = require('pg');
 
-const uri = process.env.MONGODB_URI ||
-            process.env.MONGO_URI ||
-            process.env.DATABASE_URL ||
-            'mongodb://localhost:27017';
+const connectionString = process.env.DATABASE_URL ||
+                        process.env.MONGODB_URI ||
+                        process.env.MONGO_URI;
 
-console.log(`\n🔌 Attempting connection to: ${uri}`);
+console.log(`\n🔌 Attempting connection to: ${connectionString ? connectionString.substring(0, 50) + '...' : 'undefined'}`);
 
 async function testConnection() {
-  let client;
-
-  // Strategy 1: Try with minimal SSL options
-  try {
-    console.log('🔌 Trying MongoDB connection with minimal SSL...');
-    const options1 = {
-      tls: true,
-      tlsAllowInvalidCertificates: true,
-      tlsAllowInvalidHostnames: true,
-      serverSelectionTimeoutMS: 10000,
-      connectTimeoutMS: 15000,
-    };
-
-    client = new MongoClient(uri, options1);
-    await client.connect();
-    console.log('✅ Successfully connected to MongoDB!');
-    const result = await client.db().admin().listDatabases();
-    console.log('📊 Available databases:', result.databases.map(db => db.name));
-    client.close();
+  if (!connectionString) {
+    console.error('❌ No database connection string found in environment variables');
+    console.log('\n💡 Suggestions:');
+    console.log('1. Set DATABASE_URL environment variable');
+    console.log('2. Check your .env file');
+    console.log('3. For Replit: PostgreSQL should be available automatically');
     return;
-  } catch (error1) {
-    console.log('❌ Minimal SSL connection failed:', error1.message);
+  }
 
-    // Strategy 2: Try with different SSL settings
-    try {
-      console.log('🔌 Trying MongoDB connection with alternative SSL...');
-      const options2 = {
-        tls: true,
-        tlsAllowInvalidCertificates: true,
-        tlsAllowInvalidHostnames: true,
-        tlsInsecure: true,
-        serverSelectionTimeoutMS: 10000,
-        connectTimeoutMS: 15000,
-      };
+  const pool = new Pool({
+    connectionString,
+    ssl: { rejectUnauthorized: false }
+  });
 
-      client = new MongoClient(uri, options2);
-      await client.connect();
-      console.log('✅ Successfully connected to MongoDB with alternative SSL!');
-      const result = await client.db().admin().listDatabases();
-      console.log('📊 Available databases:', result.databases.map(db => db.name));
-      client.close();
-      return;
-    } catch (error2) {
-      console.log('❌ Alternative SSL connection failed:', error2.message);
+  try {
+    // Test the connection
+    const client = await pool.connect();
+    console.log('✅ Successfully connected to PostgreSQL!');
 
-      // Strategy 3: Try localhost
-      try {
-        console.log('🔌 Trying localhost MongoDB...');
-        const options3 = {
-          serverSelectionTimeoutMS: 5000,
-        };
+    // Test basic query
+    const result = await client.query('SELECT version()');
+    console.log('📊 PostgreSQL version:', result.rows[0].version.split(' ')[1]);
 
-        client = new MongoClient('mongodb://localhost:27017', options3);
-        await client.connect();
-        console.log('✅ Successfully connected to local MongoDB!');
-        const result = await client.db().admin().listDatabases();
-        console.log('📊 Available databases:', result.databases.map(db => db.name));
-        client.close();
-        return;
-      } catch (error3) {
-        console.log('❌ Localhost connection failed:', error3.message);
-        console.error('❌ All MongoDB connection strategies failed');
+    // Check if issues table exists
+    const tableResult = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_name = 'issues'
+      )
+    `);
 
-        // Provide helpful suggestions
-        console.log('\n💡 Suggestions:');
-        console.log('1. Check if MongoDB is running locally: brew services start mongodb/brew/mongodb-community');
-        console.log('2. For FreeCodeCamp/Replit: Contact FreeCodeCamp support about MongoDB access');
-        console.log('3. Use MongoDB Atlas: Create free cluster at https://cloud.mongodb.com');
-        console.log('4. Try a different MongoDB hosting service');
-      }
+    if (tableResult.rows[0].exists) {
+      console.log('📋 Issues table exists');
+
+      // Count issues
+      const countResult = await client.query('SELECT COUNT(*) FROM issues');
+      console.log(`📊 Total issues: ${countResult.rows[0].count}`);
+    } else {
+      console.log('📋 Issues table does not exist (will be created on first API call)');
     }
+
+    client.release();
+    pool.end();
+    console.log('✅ Database connection test completed successfully!');
+
+  } catch (error) {
+    console.error('❌ PostgreSQL connection failed:', error.message);
+
+    // Provide helpful suggestions
+    console.log('\n💡 Suggestions:');
+    console.log('1. Check your DATABASE_URL format');
+    console.log('2. For Replit: PostgreSQL should be available automatically');
+    console.log('3. Verify SSL settings for your PostgreSQL provider');
+    console.log('4. Try: npm run check-db (same command)');
   }
 }
 
