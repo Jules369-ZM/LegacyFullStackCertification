@@ -1,7 +1,7 @@
 /*
  * FCC Issue Tracker Test Simulator
  * Simulates FreeCodeCamp's automated testing locally
- * Tests all 14 functional requirements
+ * Tests all 14 functional tests
  */
 
 const chai = require('chai');
@@ -352,16 +352,5 @@ describe('DELETE /api/issues/{project} => text', function() {
           done(error);
         }
       });
-  });
-});
-
-// Meta Test: All tests pass
-describe('Meta Test: All 14 functional tests are complete and passing', function() {
-  it('Should have completed all 14 functional tests', function(done) {
-    console.log('\n🎯 META TEST: Checking if all 14 functional tests passed...');
-    // This would be checked by FCC's test runner
-    // Since we're running locally, we just log that all tests completed
-    logTest('All 14 functional tests completed', true, 'Local simulation completed successfully');
-    done();
   });
 });
