@@ -4,11 +4,7 @@ const router = express.Router();
 
 // Helper function to validate ObjectId
 function isValidObjectId(id) {
-  try {
-    return ObjectId.isValid(id);
-  } catch (error) {
-    return false;
-  }
+  return ObjectId.isValid(id) && typeof id === 'string' && id.length === 24;
 }
 
 // Helper function to format issue response
