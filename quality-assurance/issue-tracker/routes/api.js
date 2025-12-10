@@ -1,8 +1,8 @@
 const express = require('express');
-const { connectDB, generateId } = require('../database');
+const { connectDB, generateId, dbType } = require('../database');
 const router = express.Router();
 
-// Helper function to validate ID (simple string validation)
+// Helper function to validate ID
 function isValidId(id) {
   return typeof id === 'string' && id.length > 0;
 }
@@ -28,33 +28,57 @@ router.get('/issues/:project', async (req, res) => {
     const db = await connectDB();
     const project = req.params.project;
 
-    // Build WHERE clause
-    let whereConditions = ['project = $1'];
-    let queryParams = [project];
-    let paramIndex = 2;
+    if (dbType === 'postgresql') {
+      // PostgreSQL implementation
+      let whereConditions = ['project = $1'];
+      let queryParams = [project];
+      let paramIndex = 2;
 
-    // Process query parameters for filtering
-    Object.keys(req.query).forEach(key => {
-      if (req.query[key] !== undefined) {
-        if (key === 'open') {
-          // Handle boolean conversion for open field
-          whereConditions.push(`open = $${paramIndex}`);
-          queryParams.push(req.query[key] === 'true');
-        } else {
-          // Handle other fields including _id
-          whereConditions.push(`${key} = $${paramIndex}`);
-          queryParams.push(req.query[key]);
+      // Process query parameters for filtering
+      Object.keys(req.query).forEach(key => {
+        if (req.query[key] !== undefined) {
+          if (key === 'open') {
+            whereConditions.push(`open = $${paramIndex}`);
+            queryParams.push(req.query[key] === 'true');
+          } else {
+            whereConditions.push(`${key} = $${paramIndex}`);
+            queryParams.push(req.query[key]);
+          }
+          paramIndex++;
         }
-        paramIndex++;
-      }
-    });
+      });
 
-    const whereClause = whereConditions.join(' AND ');
-    const query = `SELECT * FROM issues WHERE ${whereClause} ORDER BY created_on DESC`;
+      const whereClause = whereConditions.join(' AND ');
+      const query = `SELECT * FROM issues WHERE ${whereClause} ORDER BY created_on DESC`;
 
-    const result = await db.query(query, queryParams);
-    const formattedIssues = result.rows.map(formatIssue);
-    res.json(formattedIssues);
+      const result = await db.query(query, queryParams);
+      const formattedIssues = result.rows.map(formatIssue);
+      res.json(formattedIssues);
+    } else {
+      // MongoDB implementation
+      const query = { project };
+
+      // Process query parameters for filtering
+      Object.keys(req.query).forEach(key => {
+        if (req.query[key] !== undefined) {
+          if (key === 'open') {
+            query[key] = req.query[key] === 'true';
+          } else if (key === '_id') {
+            query[key] = require('mongodb').ObjectId(req.query[key]);
+          } else {
+            query[key] = req.query[key];
+          }
+        }
+      });
+
+      const issues = await db.collection('issues')
+        .find(query)
+        .sort({ created_on: -1 })
+        .toArray();
+
+      const formattedIssues = issues.map(formatIssue);
+      res.json(formattedIssues);
+    }
   } catch (error) {
     console.error('GET issues error:', error);
     // Return empty array if database error
@@ -81,21 +105,42 @@ router.post('/issues/:project', async (req, res) => {
       return res.json({ error: 'required field(s) missing' });
     }
 
-    // Generate a unique ID
-    const issueId = generateId();
+    if (dbType === 'postgresql') {
+      // PostgreSQL implementation
+      const issueId = generateId();
 
-    const query = `
-      INSERT INTO issues (_id, project, issue_title, issue_text, created_by, assigned_to, status_text, open)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *
-    `;
+      const query = `
+        INSERT INTO issues (_id, project, issue_title, issue_text, created_by, assigned_to, status_text, open)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING *
+      `;
 
-    const values = [issueId, project, issue_title, issue_text, created_by, assigned_to, status_text, true];
+      const values = [issueId, project, issue_title, issue_text, created_by, assigned_to, status_text, true];
 
-    const result = await db.query(query, values);
-    const insertedIssue = result.rows[0];
+      const result = await db.query(query, values);
+      const insertedIssue = result.rows[0];
 
-    res.json(formatIssue(insertedIssue));
+      res.json(formatIssue(insertedIssue));
+    } else {
+      // MongoDB implementation
+      const now = new Date();
+      const issue = {
+        project,
+        issue_title,
+        issue_text,
+        created_by,
+        assigned_to,
+        status_text,
+        open: true,
+        created_on: now,
+        updated_on: now
+      };
+
+      const result = await db.collection('issues').insertOne(issue);
+      const insertedIssue = await db.collection('issues').findOne({ _id: result.insertedId });
+
+      res.json(formatIssue(insertedIssue));
+    }
   } catch (error) {
     console.error('POST issue error:', error);
     // Return error object if database operation fails
@@ -119,57 +164,106 @@ router.put('/issues/:project', async (req, res) => {
       return res.json({ error: 'could not update', '_id': _id });
     }
 
-    // 3. Check if the issue exists
-    const checkQuery = 'SELECT * FROM issues WHERE _id = $1';
-    const checkResult = await db.query(checkQuery, [_id]);
-    if (checkResult.rows.length === 0) {
-      return res.json({ error: 'could not update', '_id': _id });
-    }
-
-    // 4. Check if any update fields were sent
-    const validUpdateFields = [
-      'issue_title',
-      'issue_text',
-      'created_by',
-      'assigned_to',
-      'status_text',
-      'open'
-    ];
-
-    let hasUpdateFields = false;
-    let setParts = [];
-    let values = [_id];
-    let paramIndex = 2;
-
-    validUpdateFields.forEach(field => {
-      if (req.body[field] !== undefined) {
-        if (field === 'open') {
-          setParts.push(`${field} = $${paramIndex}`);
-          values.push(req.body[field] === true || req.body[field] === 'true');
-        } else {
-          setParts.push(`${field} = $${paramIndex}`);
-          values.push(req.body[field]);
-        }
-        hasUpdateFields = true;
-        paramIndex++;
+    if (dbType === 'postgresql') {
+      // PostgreSQL implementation
+      const checkQuery = 'SELECT * FROM issues WHERE _id = $1';
+      const checkResult = await db.query(checkQuery, [_id]);
+      if (checkResult.rows.length === 0) {
+        return res.json({ error: 'could not update', '_id': _id });
       }
-    });
 
-    if (!hasUpdateFields) {
-      return res.json({ error: 'no update field(s) sent', '_id': _id });
-    }
+      const validUpdateFields = [
+        'issue_title',
+        'issue_text',
+        'created_by',
+        'assigned_to',
+        'status_text',
+        'open'
+      ];
 
-    // Add updated_on timestamp
-    setParts.push(`updated_on = CURRENT_TIMESTAMP`);
+      let hasUpdateFields = false;
+      let setParts = [];
+      let values = [_id];
+      let paramIndex = 2;
 
-    // Update the issue
-    const updateQuery = `UPDATE issues SET ${setParts.join(', ')} WHERE _id = $1`;
-    const result = await db.query(updateQuery, values);
+      validUpdateFields.forEach(field => {
+        if (req.body[field] !== undefined) {
+          if (field === 'open') {
+            setParts.push(`${field} = $${paramIndex}`);
+            values.push(req.body[field] === true || req.body[field] === 'true');
+          } else {
+            setParts.push(`${field} = $${paramIndex}`);
+            values.push(req.body[field]);
+          }
+          hasUpdateFields = true;
+          paramIndex++;
+        }
+      });
 
-    if (result.rowCount > 0) {
-      res.json({ result: 'successfully updated', '_id': _id });
+      if (!hasUpdateFields) {
+        return res.json({ error: 'no update field(s) sent', '_id': _id });
+      }
+
+      setParts.push(`updated_on = CURRENT_TIMESTAMP`);
+      const updateQuery = `UPDATE issues SET ${setParts.join(', ')} WHERE _id = $1`;
+      const result = await db.query(updateQuery, values);
+
+      if (result.rowCount > 0) {
+        res.json({ result: 'successfully updated', '_id': _id });
+      } else {
+        res.json({ error: 'could not update', '_id': _id });
+      }
     } else {
-      res.json({ error: 'could not update', '_id': _id });
+      // MongoDB implementation
+      const { ObjectId } = require('mongodb');
+
+      if (!ObjectId.isValid(_id)) {
+        return res.json({ error: 'could not update', '_id': _id });
+      }
+
+      const objectId = new ObjectId(_id);
+      const existingIssue = await db.collection('issues').findOne({ _id: objectId });
+      if (!existingIssue) {
+        return res.json({ error: 'could not update', '_id': _id });
+      }
+
+      const updateFields = {};
+      const validUpdateFields = [
+        'issue_title',
+        'issue_text',
+        'created_by',
+        'assigned_to',
+        'status_text',
+        'open'
+      ];
+
+      let hasUpdateFields = false;
+      validUpdateFields.forEach(field => {
+        if (req.body[field] !== undefined) {
+          if (field === 'open') {
+            updateFields[field] = req.body[field] === true || req.body[field] === 'true';
+          } else {
+            updateFields[field] = req.body[field];
+          }
+          hasUpdateFields = true;
+        }
+      });
+
+      if (!hasUpdateFields) {
+        return res.json({ error: 'no update field(s) sent', '_id': _id });
+      }
+
+      updateFields.updated_on = new Date();
+      const result = await db.collection('issues').updateOne(
+        { _id: objectId },
+        { $set: updateFields }
+      );
+
+      if (result.modifiedCount > 0) {
+        res.json({ result: 'successfully updated', '_id': _id });
+      } else {
+        res.json({ error: 'could not update', '_id': _id });
+      }
     }
   } catch (error) {
     console.error('PUT issue error:', error);
@@ -192,21 +286,43 @@ router.delete('/issues/:project', async (req, res) => {
       return res.json({ error: 'could not delete', '_id': _id });
     }
 
-    // Check if issue exists
-    const checkQuery = 'SELECT * FROM issues WHERE _id = $1';
-    const checkResult = await db.query(checkQuery, [_id]);
-    if (checkResult.rows.length === 0) {
-      return res.json({ error: 'could not delete', '_id': _id });
-    }
+    if (dbType === 'postgresql') {
+      // PostgreSQL implementation
+      const checkQuery = 'SELECT * FROM issues WHERE _id = $1';
+      const checkResult = await db.query(checkQuery, [_id]);
+      if (checkResult.rows.length === 0) {
+        return res.json({ error: 'could not delete', '_id': _id });
+      }
 
-    // Delete the issue
-    const deleteQuery = 'DELETE FROM issues WHERE _id = $1';
-    const result = await db.query(deleteQuery, [_id]);
+      const deleteQuery = 'DELETE FROM issues WHERE _id = $1';
+      const result = await db.query(deleteQuery, [_id]);
 
-    if (result.rowCount > 0) {
-      res.json({ result: 'successfully deleted', '_id': _id });
+      if (result.rowCount > 0) {
+        res.json({ result: 'successfully deleted', '_id': _id });
+      } else {
+        res.json({ error: 'could not delete', '_id': _id });
+      }
     } else {
-      res.json({ error: 'could not delete', '_id': _id });
+      // MongoDB implementation
+      const { ObjectId } = require('mongodb');
+
+      if (!ObjectId.isValid(_id)) {
+        return res.json({ error: 'could not delete', '_id': _id });
+      }
+
+      const objectId = new ObjectId(_id);
+      const existingIssue = await db.collection('issues').findOne({ _id: objectId });
+      if (!existingIssue) {
+        return res.json({ error: 'could not delete', '_id': _id });
+      }
+
+      const result = await db.collection('issues').deleteOne({ _id: objectId });
+
+      if (result.deletedCount > 0) {
+        res.json({ result: 'successfully deleted', '_id': _id });
+      } else {
+        res.json({ error: 'could not delete', '_id': _id });
+      }
     }
   } catch (error) {
     console.error('DELETE issue error:', error);
