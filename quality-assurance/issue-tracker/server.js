@@ -26,18 +26,19 @@ app.get('/', (req, res) => {
 
 app.use('/api', apiRoutes);
 
-// Start server and tests!
+// Start server
 const listener = app.listen(port, () => {
   console.log(`Issue Tracker API listening on port ${port}`);
 
-  if (process.env.NODE_ENV === 'test') {
+  // Run tests on server start if not in production
+  if (process.env.NODE_ENV !== 'production') {
     console.log('Running Tests...');
-    setTimeout(function () {
+    setTimeout(() => {
       try {
         runner.run();
-      } catch(e) {
+      } catch(err) {
         console.log('Tests are not valid:');
-        console.error(e);
+        console.error(err);
       }
     }, 1500);
   }
