@@ -8,7 +8,6 @@ const db = new Database('./issues.db', { verbose: console.log });
 // Drop and recreate table to ensure correct schema
 db.exec(`
   DROP TABLE IF EXISTS issues;
-  DROP TRIGGER IF EXISTS update_issues_timestamp;
 `);
 
 db.exec(`
@@ -26,15 +25,6 @@ db.exec(`
   )
 `);
 
-// Create a trigger to update updated_on automatically
-db.exec(`
-  CREATE TRIGGER update_issues_timestamp
-  AFTER UPDATE ON issues
-  BEGIN
-    UPDATE issues SET updated_on = CURRENT_TIMESTAMP WHERE _id = NEW._id;
-  END;
-`);
-
 // Prepared statements for better performance
 const statements = {
   // Insert new issue with MongoDB-style ObjectId
@@ -48,7 +38,7 @@ const statements = {
     SELECT * FROM issues WHERE _id = ?
   `),
 
-  // Update issue
+  // Update issue - manually update updated_on
   updateIssue: db.prepare(`
     UPDATE issues SET
       issue_title = ?,
@@ -56,7 +46,8 @@ const statements = {
       created_by = ?,
       assigned_to = ?,
       status_text = ?,
-      open = ?
+      open = ?,
+      updated_on = CURRENT_TIMESTAMP
     WHERE _id = ?
   `),
 
