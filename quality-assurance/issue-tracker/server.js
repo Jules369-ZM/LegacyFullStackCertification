@@ -6,7 +6,7 @@ const runner = require('./test-runner');
 const fccTestingRoutes = require('./routes/fcctesting.js');
 
 // Initialize database
-const { db } = require('./database');
+const { connectDB } = require('./database');
 
 const app = express();
 
@@ -18,7 +18,13 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-console.log('SQLite database initialized with MongoDB-style ObjectIds');
+// Connect to database
+connectDB().then(() => {
+  console.log('MongoDB connected successfully');
+}).catch(err => {
+  console.error('MongoDB connection error:', err);
+  console.log('Continuing without database connection for testing purposes');
+});
 
 // Routes
 app.get('/', (req, res) => {

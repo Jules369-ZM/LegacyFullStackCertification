@@ -1,69 +1,22 @@
-// database.js - SQLite with MongoDB-style ObjectIds
-const Database = require('better-sqlite3');
-const { ObjectId } = require('mongodb'); // Only for ObjectId generation
+const { MongoClient, ObjectId } = require('mongodb');
 
-// Create database connection
-const db = new Database('./issues.db', { verbose: console.log });
+const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const dbName = 'issue-tracker';
 
-// Drop and recreate table to ensure correct schema
-db.exec(`
-  DROP TABLE IF EXISTS issues;
-`);
+let client;
+let db;
 
-db.exec(`
-  CREATE TABLE issues (
-    _id TEXT PRIMARY KEY,
-    project TEXT NOT NULL,
-    issue_title TEXT NOT NULL,
-    issue_text TEXT NOT NULL,
-    created_by TEXT NOT NULL,
-    assigned_to TEXT DEFAULT '',
-    status_text TEXT DEFAULT '',
-    open INTEGER DEFAULT 1,
-    created_on DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_on DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
-
-// Prepared statements for better performance
-const statements = {
-  // Insert new issue with MongoDB-style ObjectId
-  insertIssue: db.prepare(`
-    INSERT INTO issues (_id, project, issue_title, issue_text, created_by, assigned_to, status_text, open)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-  `),
-
-  // Get issue by ID
-  getIssueById: db.prepare(`
-    SELECT * FROM issues WHERE _id = ?
-  `),
-
-  // Update issue - manually update updated_on
-  updateIssue: db.prepare(`
-    UPDATE issues SET
-      issue_title = ?,
-      issue_text = ?,
-      created_by = ?,
-      assigned_to = ?,
-      status_text = ?,
-      open = ?,
-      updated_on = CURRENT_TIMESTAMP
-    WHERE _id = ?
-  `),
-
-  // Delete issue
-  deleteIssue: db.prepare(`
-    DELETE FROM issues WHERE _id = ?
-  `),
-
-  // Get issues by project with filters
-  getIssuesByProject: db.prepare(`
-    SELECT * FROM issues WHERE project = ? ORDER BY created_on DESC
-  `)
-};
+async function connectDB() {
+  if (!client) {
+    client = new MongoClient(uri);
+    await client.connect();
+    db = client.db(dbName);
+    console.log('Connected to MongoDB');
+  }
+  return db;
+}
 
 module.exports = {
-  db,
-  statements,
+  connectDB,
   ObjectId
 };
