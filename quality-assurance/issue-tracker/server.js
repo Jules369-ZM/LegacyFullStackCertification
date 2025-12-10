@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const apiRoutes = require('./routes/api');
 const runner = require('./test-runner');
+const fccTestingRoutes = require('./fcctesting.js');
 
 // Initialize database
 const { db } = require('./database');
@@ -25,6 +26,9 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api', apiRoutes);
+
+// FCC Testing Routes
+fccTestingRoutes(app);
 
 // Start server
 const listener = app.listen(port, () => {
