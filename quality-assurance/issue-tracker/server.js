@@ -3,7 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const apiRoutes = require('./routes/api');
 const runner = require('./test-runner');
-const fccTestingRoutes = require('./fcctesting.js');
+const fccTestingRoutes = require('./routes/fcctesting.js');
 
 // Initialize database
 const { db } = require('./database');
