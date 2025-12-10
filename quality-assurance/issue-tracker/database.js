@@ -12,7 +12,24 @@ let db;
 
 async function connectDB() {
   if (!client) {
-    client = new MongoClient(uri);
+    // Configure MongoDB client with SSL options for Replit compatibility
+    const options = {
+      // SSL/TLS options for MongoDB Atlas
+      tls: true,
+      tlsAllowInvalidCertificates: true,
+      tlsAllowInvalidHostnames: true,
+      // Connection timeout
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+    };
+
+    // Only add SSL options for MongoDB Atlas (mongodb+srv) connections
+    if (uri.includes('mongodb+srv')) {
+      client = new MongoClient(uri, options);
+    } else {
+      client = new MongoClient(uri);
+    }
+
     await client.connect();
     db = client.db(dbName);
     console.log('Connected to MongoDB');

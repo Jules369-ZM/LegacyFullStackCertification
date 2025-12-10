@@ -28,9 +28,22 @@ const uri = process.env.MONGODB_URI ||
 
 console.log(`\n🔌 Attempting connection to: ${uri}`);
 
-const client = new MongoClient(uri, {
-  serverSelectionTimeoutMS: 5000, // 5 second timeout
-});
+let client;
+if (uri.includes('mongodb+srv')) {
+  // Use SSL options for MongoDB Atlas
+  client = new MongoClient(uri, {
+    tls: true,
+    tlsAllowInvalidCertificates: true,
+    tlsAllowInvalidHostnames: true,
+    serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 10000,
+  });
+} else {
+  // Use default options for local MongoDB
+  client = new MongoClient(uri, {
+    serverSelectionTimeoutMS: 5000,
+  });
+}
 
 client.connect()
   .then(() => {
