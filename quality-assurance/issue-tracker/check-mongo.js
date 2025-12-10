@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 // Script to check MongoDB connection and environment variables
 console.log('🔍 Checking MongoDB Environment...\n');
 
