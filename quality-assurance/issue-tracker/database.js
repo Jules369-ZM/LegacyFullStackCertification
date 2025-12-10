@@ -33,22 +33,25 @@ async function connectDB() {
     } catch (error1) {
       console.log('❌ Minimal SSL connection failed:', error1.message);
 
-      // Strategy 2: Try without SSL
-      try {
-        console.log('Trying MongoDB connection without SSL...');
-        const noSslUri = uri.replace('mongodb+srv://', 'mongodb://').replace('?retryWrites=true&w=majority', '');
-        const options2 = {
-          tls: false,
-          serverSelectionTimeoutMS: 10000,
-        };
+    // Strategy 2: Try with different SSL settings
+    try {
+      console.log('Trying MongoDB connection with different SSL settings...');
+      const options2 = {
+        tls: true,
+        tlsAllowInvalidCertificates: true,
+        tlsAllowInvalidHostnames: true,
+        tlsInsecure: true,
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 15000,
+      };
 
-        client = new MongoClient(noSslUri, options2);
-        await client.connect();
-        db = client.db(dbName);
-        console.log('✅ Connected to MongoDB without SSL');
-        return db;
-      } catch (error2) {
-        console.log('❌ No-SSL connection failed:', error2.message);
+      client = new MongoClient(uri, options2);
+      await client.connect();
+      db = client.db(dbName);
+      console.log('✅ Connected to MongoDB with alternative SSL');
+      return db;
+    } catch (error2) {
+      console.log('❌ Alternative SSL connection failed:', error2.message);
 
         // Strategy 3: Try localhost as last resort (for FreeCodeCamp)
         try {

@@ -52,24 +52,27 @@ async function testConnection() {
   } catch (error1) {
     console.log('❌ Minimal SSL connection failed:', error1.message);
 
-    // Strategy 2: Try without SSL
+    // Strategy 2: Try with different SSL settings
     try {
-      console.log('🔌 Trying MongoDB connection without SSL...');
-      const noSslUri = uri.replace('mongodb+srv://', 'mongodb://').replace('?retryWrites=true&w=majority', '');
+      console.log('🔌 Trying MongoDB connection with alternative SSL...');
       const options2 = {
-        tls: false,
+        tls: true,
+        tlsAllowInvalidCertificates: true,
+        tlsAllowInvalidHostnames: true,
+        tlsInsecure: true,
         serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 15000,
       };
 
-      client = new MongoClient(noSslUri, options2);
+      client = new MongoClient(uri, options2);
       await client.connect();
-      console.log('✅ Successfully connected to MongoDB without SSL!');
+      console.log('✅ Successfully connected to MongoDB with alternative SSL!');
       const result = await client.db().admin().listDatabases();
       console.log('📊 Available databases:', result.databases.map(db => db.name));
       client.close();
       return;
     } catch (error2) {
-      console.log('❌ No-SSL connection failed:', error2.message);
+      console.log('❌ Alternative SSL connection failed:', error2.message);
 
       // Strategy 3: Try localhost
       try {
