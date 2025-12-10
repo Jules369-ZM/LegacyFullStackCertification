@@ -114,64 +114,66 @@ router.post('/issues/:project', (req, res) => {
 router.put('/issues/:project', (req, res) => {
   const { _id } = req.body;
 
-  // Check for _id first
+  // 1. Check for missing _id
   if (!_id) {
     return res.json({ error: 'missing _id' });
   }
 
-  // Check for update fields first (exclude _id from the check)
-  const updateFields = {};
-  const validUpdateFields = [
-    'issue_title',
-    'issue_text',
-    'created_by',
-    'assigned_to',
-    'status_text',
-    'open'
-  ];
-
-  // Collect fields that are being updated
-  let hasUpdateFields = false;
-  validUpdateFields.forEach(field => {
-    if (req.body[field] !== undefined) {
-      updateFields[field] = req.body[field];
-      hasUpdateFields = true;
-    }
-  });
-
-  // Check if any fields to update
-  if (!hasUpdateFields) {
-    return res.json({ error: 'no update field(s) sent', '_id': _id });
-  }
-
-  // Now check if _id is valid ObjectId
+  // 2. Check if _id is a valid MongoDB ObjectId format
   if (!isValidObjectId(_id)) {
     return res.json({ error: 'could not update', '_id': _id });
   }
 
-  // Check if issue exists
-  const existingIssue = statements.getIssueById.get(_id);
-  if (!existingIssue) {
-    return res.json({ error: 'could not update', '_id': _id });
-  }
+  try {
+    // 3. Check if the issue exists
+    const existingIssue = statements.getIssueById.get(_id);
+    if (!existingIssue) {
+      return res.json({ error: 'could not update', '_id': _id });
+    }
 
-  // Prepare update values
-  const updateValues = [
-    updateFields.issue_title !== undefined ? updateFields.issue_title : existingIssue.issue_title,
-    updateFields.issue_text !== undefined ? updateFields.issue_text : existingIssue.issue_text,
-    updateFields.created_by !== undefined ? updateFields.created_by : existingIssue.created_by,
-    updateFields.assigned_to !== undefined ? updateFields.assigned_to : existingIssue.assigned_to,
-    updateFields.status_text !== undefined ? updateFields.status_text : existingIssue.status_text,
-    updateFields.open !== undefined ? (updateFields.open === true || updateFields.open === 'true' ? 1 : 0) : existingIssue.open,
-    _id
-  ];
+    // 4. NOW check if any update fields were sent
+    const updateFields = {};
+    const validUpdateFields = [
+      'issue_title',
+      'issue_text',
+      'created_by',
+      'assigned_to',
+      'status_text',
+      'open'
+    ];
 
-  // Update the issue
-  const result = statements.updateIssue.run(...updateValues);
+    let hasUpdateFields = false;
+    validUpdateFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        updateFields[field] = req.body[field];
+        hasUpdateFields = true;
+      }
+    });
 
-  if (result.changes > 0) {
-    res.json({ result: 'successfully updated', '_id': _id });
-  } else {
+    if (!hasUpdateFields) {
+      return res.json({ error: 'no update field(s) sent', '_id': _id });
+    }
+
+    // Prepare and execute the update
+    const updateValues = [
+      updateFields.issue_title !== undefined ? updateFields.issue_title : existingIssue.issue_title,
+      updateFields.issue_text !== undefined ? updateFields.issue_text : existingIssue.issue_text,
+      updateFields.created_by !== undefined ? updateFields.created_by : existingIssue.created_by,
+      updateFields.assigned_to !== undefined ? updateFields.assigned_to : existingIssue.assigned_to,
+      updateFields.status_text !== undefined ? updateFields.status_text : existingIssue.status_text,
+      updateFields.open !== undefined ? (updateFields.open === true || updateFields.open === 'true' ? 1 : 0) : existingIssue.open,
+      _id
+    ];
+
+    const result = statements.updateIssue.run(...updateValues);
+
+    if (result.changes > 0) {
+      // 5. Success!
+      res.json({ result: 'successfully updated', '_id': _id });
+    } else {
+      res.json({ error: 'could not update', '_id': _id });
+    }
+  } catch (error) {
     res.json({ error: 'could not update', '_id': _id });
   }
 });
