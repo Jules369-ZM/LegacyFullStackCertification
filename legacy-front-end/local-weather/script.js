@@ -1,5 +1,5 @@
 // FreeCodeCamp Weather API configuration
-const API_BASE = 'https://weather-proxy.freecodecamp.rocks/weather';
+const API_BASE = 'https://weather-proxy.freecodecamp.rocks/api/current';
 
 // DOM elements
 const app = document.getElementById('app');
@@ -81,20 +81,29 @@ async function getWeatherByIP() {
     if (locationData.city && locationData.country_name) {
       const city = locationData.city;
       const country = locationData.country_code;
-      await getWeatherByCity(`${city},${country}`);
+      // Try to get weather by coordinates first using approximate location
+      if (locationData.latitude && locationData.longitude) {
+        await getWeatherByCoords(locationData.latitude, locationData.longitude);
+      } else {
+        // Fallback to a default city
+        await getWeatherByDefaultCity();
+      }
     } else {
-      throw new Error('Could not determine location');
+      // Fallback to a default city
+      await getWeatherByDefaultCity();
     }
   } catch (error) {
     console.error('IP location error:', error);
-    showError();
+    // Fallback to a default city
+    await getWeatherByDefaultCity();
   }
 }
 
-// Get weather by city name
-async function getWeatherByCity(city) {
+// Get weather by default city (freeCodeCamp API limitation)
+async function getWeatherByDefaultCity() {
   try {
-    const response = await fetch(`${API_BASE}?q=${encodeURIComponent(city)}`);
+    // Use New York as default since it's supported by the API
+    const response = await fetch('https://weather-proxy.freecodecamp.rocks/api/city/new york');
     const data = await response.json();
 
     if (data.cod === 200) {
@@ -104,7 +113,7 @@ async function getWeatherByCity(city) {
       throw new Error(data.message);
     }
   } catch (error) {
-    console.error('Error fetching weather:', error);
+    console.error('Error fetching default city weather:', error);
     showError();
   }
 }
