@@ -1,6 +1,5 @@
-// OpenWeatherMap API configuration
-const API_KEY = 'bd5e378503939ddaee76f12ad7a97608'; // Free API key (replace with your own)
-const API_BASE = 'https://api.openweathermap.org/data/2.5/weather';
+// FreeCodeCamp Weather API configuration
+const API_BASE = 'https://weather-proxy.freecodecamp.rocks/weather';
 
 // DOM elements
 const app = document.getElementById('app');
@@ -57,7 +56,7 @@ function getLocation() {
 // Get weather by coordinates
 async function getWeatherByCoords(lat, lon) {
   try {
-    const response = await fetch(`${API_BASE}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`);
+    const response = await fetch(`${API_BASE}?lat=${lat}&lon=${lon}`);
     const data = await response.json();
 
     if (data.cod === 200) {
@@ -95,7 +94,7 @@ async function getWeatherByIP() {
 // Get weather by city name
 async function getWeatherByCity(city) {
   try {
-    const response = await fetch(`${API_BASE}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`);
+    const response = await fetch(`${API_BASE}?q=${encodeURIComponent(city)}`);
     const data = await response.json();
 
     if (data.cod === 200) {
@@ -114,6 +113,10 @@ async function getWeatherByCity(city) {
 function displayWeather(data) {
   hideLoading();
   hideError();
+
+  // Set background based on weather
+  const weatherMain = data.weather[0].main.toLowerCase();
+  setWeatherBackground(weatherMain);
 
   // Location
   const city = data.name;
@@ -214,6 +217,28 @@ function showError() {
 // Hide error message
 function hideError() {
   errorMessage.classList.add('hidden');
+}
+
+// Set weather background
+function setWeatherBackground(weatherMain) {
+  // Remove existing weather classes
+  document.body.className = '';
+
+  // Add appropriate weather class
+  const weatherClasses = {
+    'clear': 'weather-clear',
+    'clouds': 'weather-clouds',
+    'rain': 'weather-rain',
+    'drizzle': 'weather-rain',
+    'thunderstorm': 'weather-thunderstorm',
+    'snow': 'weather-snow',
+    'mist': 'weather-mist',
+    'fog': 'weather-mist',
+    'haze': 'weather-mist'
+  };
+
+  const weatherClass = weatherClasses[weatherMain] || 'weather-default';
+  document.body.classList.add(weatherClass);
 }
 
 // Initialize app when page loads
