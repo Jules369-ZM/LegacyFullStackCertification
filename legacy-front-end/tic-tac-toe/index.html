@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>Tic Tac Toe</h1>
+        <p>Classic 3x3 grid game for two players</p>
+    </header>
+
+    <main>
+        <div class="game-container">
+            <div class="game-info">
+                <div class="current-player">
+                    <span id="currentPlayerText">Player X's turn</span>
+                </div>
+                <div class="score">
+                    <div class="score-item">
+                        <span class="player-symbol">X</span>
+                        <span id="xScore">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="player-symbol">O</span>
+                        <span id="oScore">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="ties">Ties</span>
+                        <span id="tiesScore">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-board" id="gameBoard">
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+            </div>
+
+            <div class="game-controls">
+                <button id="resetBtn" class="control-btn">
+                    <i class="fas fa-redo"></i>
+                    New Game
+                </button>
+                <button id="resetScoreBtn" class="control-btn secondary">
+                    <i class="fas fa-trash"></i>
+                    Reset Score
+                </button>
+            </div>
+
+            <div id="gameMessage" class="game-message hidden">
+                <div class="message-content">
+                    <h3 id="messageText">Player X Wins!</h3>
+                    <button id="playAgainBtn" class="play-again-btn">
+                        <i class="fas fa-play"></i>
+                        Play Again
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-rules">
+            <h3>How to Play</h3>
+            <ul>
+                <li>Players take turns placing X's and O's on the 3x3 grid</li>
+                <li>Get three of your marks in a row (horizontal, vertical, or diagonal) to win</li>
+                <li>If all 9 squares are filled without a winner, it's a tie</li>
+                <li>Click "New Game" to start over or "Reset Score" to clear the scoreboard</li>
+            </ul>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

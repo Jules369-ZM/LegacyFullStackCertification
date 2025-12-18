@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TwitchTV JSON API</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>TwitchTV JSON API</h1>
+        <p>Display Twitch streamer status using API calls</p>
+    </header>
+
+    <main>
+        <div class="controls">
+            <button id="allBtn" class="active">All</button>
+            <button id="onlineBtn">Online</button>
+            <button id="offlineBtn">Offline</button>
+        </div>
+
+        <div id="streamers" class="streamers-grid">
+            <!-- Streamers will be loaded here -->
+        </div>
+
+        <div id="loading" class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading streamers...</p>
+        </div>
+
+        <div id="error" class="error hidden">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Failed to load streamer data</p>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

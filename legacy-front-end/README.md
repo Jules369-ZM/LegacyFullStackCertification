@@ -15,6 +15,46 @@ This directory contains additional FreeCodeCamp front-end projects that demonstr
   - Responsive design with loading states
   - Error handling for location/API failures
 
+### 2. TwitchTV JSON API (`twitchtv-api/`)
+- **Description**: Streamer status display using API concepts (mock implementation)
+- **Features**:
+  - Mock API data simulation for Twitch streams
+  - Online/offline status filtering
+  - Streamer information display (name, game, viewers)
+  - Responsive card-based layout
+  - Loading states and error handling
+  - Real-time filtering functionality
+
+### 3. Wikipedia Viewer (`wikipedia-viewer/`)
+- **Description**: Search interface for Wikipedia articles using their public API
+- **Features**:
+  - Real-time search with Wikipedia's search API
+  - Article summaries and thumbnails
+  - Random article functionality
+  - Responsive design with loading states
+  - Direct links to full Wikipedia articles
+  - Error handling for API failures
+
+### 4. Tic Tac Toe Game (`tic-tac-toe/`)
+- **Description**: Classic 3x3 grid game for two players with scoring
+- **Features**:
+  - Two-player turn-based gameplay
+  - Win detection for all combinations
+  - Score tracking and high scores
+  - Visual win highlighting
+  - Responsive design
+  - Game reset and score reset functionality
+
+### 5. Memory Light Game (`memory-game/`)
+- **Description**: Simon Says style memory challenge with colored lights
+- **Features**:
+  - Progressive sequence memorization
+  - Four colored buttons with visual feedback
+  - Increasing difficulty levels
+  - Score tracking with persistent high scores
+  - Keyboard controls (R, B, G, Y)
+  - Game over modal with statistics
+
 ## Technologies Used
 
 - **Vanilla JavaScript**: DOM manipulation, async/await, fetch API
@@ -34,6 +74,38 @@ This directory contains additional FreeCodeCamp front-end projects that demonstr
 - **User Experience**: Loading states, error messages, smooth transitions
 - **Data Visualization**: Weather icons, temperature formatting
 - **Responsive Design**: Mobile-first approach with media queries
+
+### TwitchTV JSON API
+- **Mock API Implementation**: Simulating real API calls with structured data
+- **Data Filtering**: Dynamic content filtering based on user selection
+- **State Management**: Managing application state for different views
+- **Error Handling**: Graceful error handling with user feedback
+- **Modern UI/UX**: Glassmorphism design with smooth animations
+- **Responsive Layout**: Adaptive design for different screen sizes
+
+### Wikipedia Viewer
+- **External API Integration**: Real-time data fetching from Wikipedia APIs
+- **Search Functionality**: Dynamic search with debouncing and error handling
+- **Content Display**: Rich content presentation with images and links
+- **User Experience**: Loading states, welcome messages, and smooth transitions
+- **Accessibility**: Keyboard navigation and screen reader support
+- **Progressive Enhancement**: Graceful degradation and error recovery
+
+### Tic Tac Toe Game
+- **Game Logic**: Complex win condition checking and game state management
+- **Interactive UI**: Dynamic user interface updates and visual feedback
+- **Score Persistence**: Local storage for high scores and game statistics
+- **Animation System**: Smooth transitions and win highlighting
+- **Event Handling**: Comprehensive event management and user interactions
+- **Algorithm Implementation**: Game theory and state validation algorithms
+
+### Memory Light Game
+- **Sequence Generation**: Random sequence creation with increasing complexity
+- **Timing Controls**: Precise timing for sequence playback and user input
+- **Progressive Difficulty**: Dynamic difficulty scaling based on performance
+- **Visual Feedback**: Color animations and interactive button states
+- **Score Management**: Persistent high score tracking with localStorage
+- **Input Validation**: Real-time input validation and error detection
 
 ## Installation and Setup
 
@@ -55,9 +127,9 @@ These projects fulfill requirements from the legacy FreeCodeCamp front-end curri
 ## Project Status
 
 - ✅ **Local Weather App** - Completed
-- 🔄 **Wikipedia Viewer** - Planned
-- 🔄 **TwitchTV JSON API** - Planned
-- 🔄 **Tic Tac Toe Game** - Planned
-- 🔄 **Memory Light Game** - Planned
+- ✅ **TwitchTV JSON API** - Completed
+- ✅ **Wikipedia Viewer** - Completed
+- ✅ **Tic Tac Toe Game** - Completed
+- ✅ **Memory Light Game** - Completed
 
-**Legacy Front End projects: 1/5 completed** 🎨
+**Legacy Front End projects: 5/5 completed** 🎨

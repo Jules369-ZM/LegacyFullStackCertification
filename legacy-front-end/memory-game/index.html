@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Light Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>Memory Light Game</h1>
+        <p>Simon Says style memory challenge</p>
+    </header>
+
+    <main>
+        <div class="game-container">
+            <div class="game-info">
+                <div class="score-display">
+                    <div class="score-item">
+                        <span class="label">Score</span>
+                        <span id="currentScore">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="label">High Score</span>
+                        <span id="highScore">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="label">Level</span>
+                        <span id="currentLevel">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-board">
+                <div class="color-button" data-color="red" id="red"></div>
+                <div class="color-button" data-color="blue" id="blue"></div>
+                <div class="color-button" data-color="green" id="green"></div>
+                <div class="color-button" data-color="yellow" id="yellow"></div>
+            </div>
+
+            <div class="game-controls">
+                <button id="startBtn" class="control-btn">
+                    <i class="fas fa-play"></i>
+                    Start Game
+                </button>
+                <button id="resetBtn" class="control-btn secondary">
+                    <i class="fas fa-redo"></i>
+                    Reset
+                </button>
+            </div>
+
+            <div class="game-status">
+                <p id="statusText">Press "Start Game" to begin</p>
+            </div>
+        </div>
+
+        <div class="game-instructions">
+            <h3>How to Play</h3>
+            <ul>
+                <li>Watch the sequence of colored lights</li>
+                <li>Repeat the sequence by clicking the buttons in the same order</li>
+                <li>Each round adds one more light to remember</li>
+                <li>Game ends if you click the wrong color</li>
+                <li>Try to beat your high score!</li>
+            </ul>
+        </div>
+
+        <div id="gameOverModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Game Over!</h2>
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <p>Level Reached: <span id="finalLevel">1</span></p>
+                <div class="modal-buttons">
+                    <button id="playAgainBtn" class="modal-btn">
+                        <i class="fas fa-play"></i>
+                        Play Again
+                    </button>
+                    <button id="closeModalBtn" class="modal-btn secondary">
+                        <i class="fas fa-times"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

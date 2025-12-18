@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikipedia Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>Wikipedia Viewer</h1>
+        <p>Search and explore Wikipedia articles</p>
+    </header>
+
+    <main>
+        <div class="search-container">
+            <form id="searchForm" class="search-form">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search Wikipedia..."
+                    autocomplete="off"
+                >
+                <button type="submit" id="searchBtn">
+                    <i class="fas fa-search"></i>
+                    Search
+                </button>
+            </form>
+            <button id="randomBtn" class="random-btn">
+                <i class="fas fa-random"></i>
+                Random Article
+            </button>
+        </div>
+
+        <div id="results" class="results">
+            <!-- Search results will appear here -->
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Searching Wikipedia...</p>
+        </div>
+
+        <div id="error" class="error hidden">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p id="errorMessage">Search failed. Please try again.</p>
+        </div>
+
+        <div id="noResults" class="no-results hidden">
+            <i class="fas fa-search"></i>
+            <h3>No results found</h3>
+            <p>Try different keywords or check your spelling</p>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

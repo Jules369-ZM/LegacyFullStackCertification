@@ -1,0 +1,329 @@
+/* Tic Tac Toe Game Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+main {
+    flex: 1;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    width: 100%;
+}
+
+.game-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-info {
+    margin-bottom: 2rem;
+}
+
+.current-player {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+#currentPlayerText {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 25px;
+    display: inline-block;
+}
+
+.score {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 1rem;
+}
+
+.score-item {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.player-symbol, .ties {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 0.5rem;
+    border-radius: 50%;
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.player-symbol {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    color: white;
+}
+
+.ties {
+    background: rgba(255, 255, 255, 0.3);
+    color: #333;
+}
+
+.score-item span:last-child {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 0.5rem;
+    aspect-ratio: 1;
+    max-width: 400px;
+    margin: 0 auto 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 1rem;
+}
+
+.cell {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.cell:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.cell.x::before {
+    content: '×';
+    color: #e74c3c;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.cell.o::before {
+    content: '○';
+    color: #3498db;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.cell.x, .cell.o {
+    cursor: not-allowed;
+}
+
+.game-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.control-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: bold;
+}
+
+.control-btn {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.control-btn.secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.control-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.game-message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.message-content {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2rem;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 300px;
+    width: 90%;
+}
+
+.message-content h3 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+.play-again-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 auto;
+    font-weight: bold;
+}
+
+.play-again-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.game-rules {
+    margin-top: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-rules h3 {
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.game-rules ul {
+    list-style: none;
+    padding: 0;
+}
+
+.game-rules li {
+    margin-bottom: 0.75rem;
+    padding-left: 1.5rem;
+    position: relative;
+    opacity: 0.9;
+}
+
+.game-rules li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.hidden {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .game-container {
+        padding: 1.5rem;
+    }
+
+    .score {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .game-board {
+        max-width: 300px;
+        padding: 0.75rem;
+    }
+
+    .cell {
+        font-size: 2.5rem;
+    }
+
+    .game-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .control-btn {
+        width: 200px;
+        justify-content: center;
+    }
+}
