@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   loadPins();
   checkAuthStatus();
+  initializeMasonry();
 
   // Modal functionality
   const modal = document.getElementById('pinModal');
@@ -21,17 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
   pinForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append('title', document.getElementById('pinTitle').value);
-    formData.append('description', document.getElementById('pinDescription').value);
-    formData.append('image', document.getElementById('pinImage').files[0]);
-    formData.append('board', document.getElementById('pinBoard').value);
-    formData.append('tags', document.getElementById('pinTags').value);
+    const pinData = {
+      title: document.getElementById('pinTitle').value,
+      description: document.getElementById('pinDescription').value,
+      imageUrl: document.getElementById('pinImageUrl').value,
+      board: document.getElementById('pinBoard').value,
+      tags: document.getElementById('pinTags').value
+    };
 
     try {
       const response = await fetch('/api/pins', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(pinData)
       });
 
       if (response.ok) {
@@ -188,7 +193,7 @@ async function openPinModal(pinId) {
         <h2 class="pin-detail-title">${pin.title}</h2>
         <p class="pin-detail-description">${pin.description || 'No description'}</p>
         <div class="pin-detail-meta">
-          <span>by ${pin.creator.username}</span>
+          <span>by <a href="#" onclick="viewUserWall('${pin.creator.username}')">${pin.creator.username}</a></span>
           <button class="like-btn ${pin.likes.length > 0 ? 'liked' : ''}" onclick="toggleLike('${pin._id}', this)">
             ❤️ ${pin.likes.length}
           </button>
@@ -288,4 +293,142 @@ function toggleCreateBoard() {
   const createPin = document.getElementById('createPin');
   createPin.style.display = 'none';
   createBoard.style.display = createBoard.style.display === 'none' ? 'block' : 'none';
+}
+
+// Initialize Masonry layout
+function initializeMasonry() {
+  const container = document.querySelector('.pins-grid');
+  if (container) {
+    const msnry = new Masonry(container, {
+      itemSelector: '.pin',
+      columnWidth: 250,
+      gutter: 20,
+      fitWidth: true
+    });
+
+    // Re-layout after images load
+    imagesLoaded(container).on('progress', function() {
+      msnry.layout();
+    });
+  }
+}
+
+// Handle broken images
+function handleBrokenImages() {
+  const images = document.querySelectorAll('.pin img, .pin-detail-image');
+  images.forEach(img => {
+    img.addEventListener('error', function() {
+      this.src = 'https://via.placeholder.com/300x200?text=Image+Not+Found';
+      this.alt = 'Image not available';
+    });
+  });
+}
+
+// Delete pin function
+async function deletePin(pinId) {
+  if (!confirm('Are you sure you want to delete this pin?')) return;
+
+  try {
+    const response = await fetch(`/api/pins/${pinId}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      loadPins(); // Reload pins
+    } else {
+      const data = await response.json();
+      alert(data.error || 'Failed to delete pin');
+    }
+  } catch (error) {
+    console.error('Error deleting pin:', error);
+    alert('Failed to delete pin');
+  }
+}
+
+// Update displayPins to include delete button and clickable usernames
+function displayPins(pins) {
+  const container = document.getElementById('pinsContainer');
+  container.innerHTML = '';
+
+  pins.forEach(pin => {
+    const pinDiv = document.createElement('div');
+    pinDiv.className = 'pin';
+
+    const deleteButton = pin.canDelete ? `<button class="delete-btn" onclick="deletePin('${pin._id}')">🗑️</button>` : '';
+
+    pinDiv.innerHTML = `
+      <img src="${pin.image}" alt="${pin.title}" onclick="openPinModal('${pin._id}')">
+      <div class="pin-content">
+        <div class="pin-title">${pin.title}</div>
+        <div class="pin-meta">
+          <span>by <a href="#" onclick="viewUserWall('${pin.creator.username}')">${pin.creator.username}</a></span>
+          <button class="like-btn ${pin.likes.length > 0 ? 'liked' : ''}" onclick="toggleLike('${pin._id}', this)">
+            ❤️ ${pin.likes.length}
+          </button>
+          ${deleteButton}
+        </div>
+      </div>
+    `;
+
+    container.appendChild(pinDiv);
+  });
+
+  // Initialize Masonry after adding pins
+  initializeMasonry();
+  handleBrokenImages();
+}
+
+// Check if current user can delete a pin
+async function checkDeletePermissions(pins) {
+  try {
+    const response = await fetch('/api/user');
+    if (response.ok) {
+      const user = await response.json();
+      pins.forEach(pin => {
+        pin.canDelete = pin.creator._id === user.id;
+      });
+    }
+  } catch (error) {
+    // User not authenticated, can't delete any pins
+    pins.forEach(pin => {
+      pin.canDelete = false;
+    });
+  }
+  return pins;
+}
+
+// View user wall
+function viewUserWall(username) {
+  window.location.href = `/user/${username}`;
+}
+
+// Update loadPins to check delete permissions and handle user pages
+async function loadPins() {
+  try {
+    // Check if we're on a user page
+    const urlParts = window.location.pathname.split('/');
+    const isUserPage = urlParts[1] === 'user';
+    const username = isUserPage ? urlParts[2] : null;
+
+    let response;
+    if (isUserPage && username) {
+      response = await fetch(`/api/users/${username}`);
+      const data = await response.json();
+      if (data.user) {
+        // Update page title and header
+        document.querySelector('h1').textContent = `${data.user.displayName || data.user.username}'s Wall`;
+        document.title = `${data.user.displayName || data.user.username}'s Wall - Pinterest Clone`;
+      }
+      let pins = data.pins || [];
+      pins = await checkDeletePermissions(pins);
+      displayPins(pins);
+    } else {
+      response = await fetch('/api/pins');
+      let pins = await response.json();
+      pins = await checkDeletePermissions(pins);
+      displayPins(pins);
+    }
+  } catch (error) {
+    console.error('Error loading pins:', error);
+  }
 }

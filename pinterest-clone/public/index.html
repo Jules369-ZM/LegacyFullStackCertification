@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pinterest Clone</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+  <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
 </head>
 <body>
   <header>
@@ -25,10 +28,10 @@
 
       <div id="createPin" class="create-pin" style="display: none;">
         <h2>Create New Pin</h2>
-        <form id="pinForm" enctype="multipart/form-data">
+        <form id="pinForm">
           <input type="text" id="pinTitle" placeholder="Pin Title" required>
           <textarea id="pinDescription" placeholder="Description" rows="3"></textarea>
-          <input type="file" id="pinImage" accept="image/*" required>
+          <input type="url" id="pinImageUrl" placeholder="Image URL" required>
           <select id="pinBoard">
             <option value="">Select Board (optional)</option>
           </select>

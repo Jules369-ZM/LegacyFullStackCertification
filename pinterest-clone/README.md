@@ -1,25 +1,27 @@
 # Pinterest Clone
 
-A full-stack web application that replicates the core features of Pinterest. Users can create boards, upload pins, like and comment on content, and browse an image-based social platform.
+A full-stack web application that replicates the core features of Pinterest. Users can link to images, create pins, like and comment on content, browse user walls, and enjoy a Pinterest-style masonry layout.
 
 ## Features
 
-- User registration and authentication
-- Create and manage boards (collections of pins)
-- Upload images and create pins with titles and descriptions
+- GitHub OAuth authentication
+- Link to images (instead of uploading) to create pins
+- Delete pins you've created
 - Browse all pins in a Pinterest-style masonry grid
+- View individual user walls by clicking on usernames
 - Like pins and view like counts
 - Comment on pins with threaded discussions
 - Responsive design with modal pin details
-- Image upload with file validation (5MB limit)
+- Broken image detection with placeholder replacement
+- Create and manage boards (collections of pins)
 
 ## Technologies Used
 
 - **Backend**: Node.js, Express.js, MongoDB, Mongoose
-- **Authentication**: Passport.js with local strategy
-- **File Upload**: Multer for image handling
-- **Frontend**: HTML, CSS, JavaScript (vanilla)
-- **Security**: bcryptjs for password hashing, express-session for sessions
+- **Authentication**: Passport.js with GitHub OAuth
+- **Frontend**: HTML, CSS, JavaScript (vanilla), jQuery, Masonry.js
+- **Security**: express-session for sessions
+- **Image Handling**: Client-side broken image detection
 
 ## Installation and Setup
 
@@ -28,43 +30,51 @@ A full-stack web application that replicates the core features of Pinterest. Use
    npm install
    ```
 
-2. **Environment Variables:**
+2. **Set up GitHub OAuth:**
+   - Go to GitHub Settings > Developer settings > OAuth Apps
+   - Create a new OAuth App
+   - Set Authorization callback URL to: `http://localhost:3005/auth/github/callback`
+
+3. **Environment Variables:**
    Create a `.env` file with:
    ```
    MONGO_URI=mongodb://localhost:27017/pinterest
    SESSION_SECRET=your_session_secret_here
    PORT=3005
+   GITHUB_CLIENT_ID=your_github_client_id
+   GITHUB_CLIENT_SECRET=your_github_client_secret
    ```
 
-3. **Start MongoDB:**
-   Make sure MongoDB is running on your system.
+4. **Start MongoDB (optional for basic functionality):**
+   For production use, ensure MongoDB is running on your system. The app will work with in-memory sessions for basic testing.
 
-4. **Start the server:**
+5. **Start the server:**
    ```bash
    npm start
    # or for development
    npm run dev
    ```
 
-5. **Access the application:**
+6. **Access the application:**
    Open `http://localhost:3005` in your browser
 
 ## API Endpoints
 
 - `GET /` - Main application page
-- `GET /login` - Login page
-- `POST /login` - Login user
-- `GET /register` - Registration page
-- `POST /register` - Register user
+- `GET /user/:username` - User profile/wall page
+- `GET /auth/github` - Initiate GitHub OAuth login
+- `GET /auth/github/callback` - GitHub OAuth callback
 - `GET /logout` - Logout user
 - `GET /api/pins` - Get all pins
-- `POST /api/pins` - Create new pin with image upload (authenticated)
+- `POST /api/pins` - Create new pin with image URL (authenticated)
+- `DELETE /api/pins/:id` - Delete a pin (authenticated, owner only)
 - `POST /api/pins/:id/like` - Like/unlike a pin (authenticated)
 - `GET /api/pins/:id/comments` - Get comments for a pin
 - `POST /api/pins/:id/comments` - Add comment to pin (authenticated)
 - `GET /api/boards` - Get user's boards (authenticated)
 - `POST /api/boards` - Create new board (authenticated)
 - `GET /api/user` - Get current user info (authenticated)
+- `GET /api/users/:username` - Get user's pins for their wall
 
 ## Features Overview
 

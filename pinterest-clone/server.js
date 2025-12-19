@@ -2,39 +2,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const bcrypt = require('bcryptjs');
+const GitHubStrategy = require('passport-github2').Strategy;
 const MongoStore = require('connect-mongo');
-const multer = require('multer');
-const path = require('path');
 require('dotenv').config();
 
 const app = express();
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'public/uploads/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
-    }
-  }
-});
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
@@ -45,8 +17,8 @@ app.use(express.static('public'));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI })
+  saveUninitialized: false
+  // store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }) // Uncomment when MongoDB is available
 }));
 
 // Passport configuration
@@ -58,8 +30,9 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/pinterest')
 
 // User Schema
 const userSchema = new mongoose.Schema({
+  githubId: { type: String, required: true, unique: true },
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  displayName: { type: String },
   profileImage: { type: String, default: '' },
   bio: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
@@ -102,15 +75,23 @@ const commentSchema = new mongoose.Schema({
 
 const Comment = mongoose.model('Comment', commentSchema);
 
-// Passport Local Strategy
-passport.use(new LocalStrategy(async (username, password, done) => {
+// Passport GitHub Strategy
+passport.use(new GitHubStrategy({
+  clientID: process.env.GITHUB_CLIENT_ID,
+  clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  callbackURL: 'http://localhost:3005/auth/github/callback'
+}, async (accessToken, refreshToken, profile, done) => {
   try {
-    const user = await User.findOne({ username });
-    if (!user) return done(null, false, { message: 'Incorrect username.' });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
-
+    let user = await User.findOne({ githubId: profile.id });
+    if (!user) {
+      user = new User({
+        githubId: profile.id,
+        username: profile.username,
+        displayName: profile.displayName,
+        profileImage: profile.photos[0].value
+      });
+      await user.save();
+    }
     return done(null, user);
   } catch (err) {
     return done(err);
@@ -135,32 +116,17 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 });
 
+app.get('/user/:username', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
+});
+
 // Authentication routes
-app.get('/login', (req, res) => {
-  res.sendFile(__dirname + '/public/login.html');
-});
+app.get('/auth/github', passport.authenticate('github'));
 
-app.post('/login', passport.authenticate('local', {
+app.get('/auth/github/callback', passport.authenticate('github', {
   successRedirect: '/',
-  failureRedirect: '/login',
-  failureFlash: false
+  failureRedirect: '/login'
 }));
-
-app.get('/register', (req, res) => {
-  res.sendFile(__dirname + '/public/register.html');
-});
-
-app.post('/register', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ username, password: hashedPassword });
-    await user.save();
-    res.redirect('/login');
-  } catch (err) {
-    res.redirect('/register');
-  }
-});
 
 app.get('/logout', (req, res) => {
   req.logout(() => {
@@ -203,19 +169,35 @@ app.post('/api/boards', ensureAuthenticated, async (req, res) => {
   }
 });
 
-app.post('/api/pins', ensureAuthenticated, upload.single('image'), async (req, res) => {
+app.post('/api/pins', ensureAuthenticated, async (req, res) => {
   try {
-    const { title, description, board, tags } = req.body;
+    const { title, description, imageUrl, board, tags } = req.body;
     const pin = new Pin({
       title,
       description,
-      image: '/uploads/' + req.file.filename,
+      image: imageUrl,
       creator: req.user._id,
       board: board || null,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : []
     });
     await pin.save();
     res.json(pin);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/pins/:id', ensureAuthenticated, async (req, res) => {
+  try {
+    const pin = await Pin.findById(req.params.id);
+    if (!pin) return res.status(404).json({ error: 'Pin not found' });
+
+    if (pin.creator.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'You can only delete your own pins' });
+    }
+
+    await Pin.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Pin deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -272,6 +254,18 @@ app.get('/api/user', ensureAuthenticated, (req, res) => {
     profileImage: req.user.profileImage,
     bio: req.user.bio
   });
+});
+
+app.get('/api/users/:username', async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.params.username });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const pins = await Pin.find({ creator: user._id }).populate('creator', 'username').sort({ createdAt: -1 });
+    res.json({ user, pins });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Middleware to check authentication
