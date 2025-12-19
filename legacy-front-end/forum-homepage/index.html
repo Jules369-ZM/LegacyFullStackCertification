@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>freeCodeCamp Forum</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1><i class="fab fa-free-code-camp"></i> freeCodeCamp Forum</h1>
+            <p>Welcome to the freeCodeCamp community forum</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="forum-header">
+                <h2>Recent Posts</h2>
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Loading forum posts...
+                </div>
+                <div class="error" id="error" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Failed to load forum posts. Please try again later.
+                </div>
+            </div>
+
+            <div class="posts-container" id="postsContainer">
+                <!-- Posts will be dynamically loaded here -->
+            </div>
+
+            <div class="forum-footer">
+                <a href="https://forum.freecodecamp.org" target="_blank" rel="noopener noreferrer" class="forum-link">
+                    <i class="fas fa-external-link-alt"></i>
+                    Visit the full forum
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 freeCodeCamp Forum Clone</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

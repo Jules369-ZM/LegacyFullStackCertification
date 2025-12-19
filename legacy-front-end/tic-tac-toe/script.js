@@ -1,4 +1,4 @@
-// Tic Tac Toe Game Logic
+// Tic Tac Toe Game Logic - Human vs Computer
 
 const X_CLASS = 'x';
 const O_CLASS = 'o';
@@ -8,8 +8,10 @@ const WINNING_COMBINATIONS = [
     [0, 4, 8], [2, 4, 6] // Diagonals
 ];
 
-let currentPlayer = X_CLASS;
-let gameActive = true;
+let humanPlayer = null;
+let computerPlayer = null;
+let currentPlayer = null;
+let gameActive = false;
 let gameState = Array(9).fill(null);
 let scores = { x: 0, o: 0, ties: 0 };
 
@@ -20,16 +22,22 @@ const gameMessage = document.getElementById('gameMessage');
 const xScoreElement = document.getElementById('xScore');
 const oScoreElement = document.getElementById('oScore');
 const tiesScoreElement = document.getElementById('tiesScore');
+const playerSelection = document.getElementById('playerSelection');
+const gameInfo = document.getElementById('gameInfo');
 
 document.addEventListener('DOMContentLoaded', initializeGame);
 
 function initializeGame() {
     setupEventListeners();
     updateScoreDisplay();
-    updateCurrentPlayerDisplay();
 }
 
 function setupEventListeners() {
+    // Player selection events
+    document.querySelectorAll('.symbol-btn').forEach(button => {
+        button.addEventListener('click', handlePlayerSelection);
+    });
+
     // Cell click events
     document.querySelectorAll('[data-cell]').forEach(cell => {
         cell.addEventListener('click', handleCellClick);
@@ -41,39 +49,141 @@ function setupEventListeners() {
     document.getElementById('playAgainBtn').addEventListener('click', playAgain);
 }
 
+function handlePlayerSelection(e) {
+    const selectedSymbol = e.target.dataset.symbol;
+    humanPlayer = selectedSymbol;
+    computerPlayer = selectedSymbol === X_CLASS ? O_CLASS : X_CLASS;
+
+    // Hide player selection and show game
+    playerSelection.style.display = 'none';
+    gameInfo.style.display = 'block';
+
+    // Start new game
+    startNewGame();
+}
+
+function startNewGame() {
+    currentPlayer = X_CLASS; // X always starts
+    gameActive = true;
+    gameState = Array(9).fill(null);
+
+    document.querySelectorAll('[data-cell]').forEach(cell => {
+        cell.classList.remove(X_CLASS, O_CLASS);
+        cell.style.backgroundColor = '';
+        cell.style.color = '';
+    });
+
+    updateCurrentPlayerDisplay();
+    hideGameMessage();
+
+    // If computer goes first (when human chose O), make computer move
+    if (humanPlayer === O_CLASS && currentPlayer === computerPlayer) {
+        setTimeout(makeComputerMove, 500);
+    }
+}
+
 function handleCellClick(e) {
     const cell = e.target;
     const cellIndex = Array.from(gameBoard.children).indexOf(cell);
 
-    if (!gameActive || gameState[cellIndex] !== null) {
+    if (!gameActive || gameState[cellIndex] !== null || currentPlayer !== humanPlayer) {
         return;
     }
 
-    makeMove(cell, cellIndex);
+    makeMove(cell, cellIndex, humanPlayer);
 
-    if (checkWin()) {
-        endGame(false);
+    if (checkWin(humanPlayer)) {
+        endGame(false, humanPlayer);
     } else if (checkDraw()) {
         endGame(true);
     } else {
-        switchPlayer();
+        // Computer's turn
+        currentPlayer = computerPlayer;
+        updateCurrentPlayerDisplay();
+        setTimeout(makeComputerMove, 500);
     }
 }
 
-function makeMove(cell, index) {
-    gameState[index] = currentPlayer;
-    cell.classList.add(currentPlayer);
+function makeComputerMove() {
+    if (!gameActive) return;
+
+    const bestMove = getBestMove();
+    const cell = document.querySelectorAll('[data-cell]')[bestMove];
+
+    makeMove(cell, bestMove, computerPlayer);
+
+    if (checkWin(computerPlayer)) {
+        endGame(false, computerPlayer);
+    } else if (checkDraw()) {
+        endGame(true);
+    } else {
+        // Human's turn
+        currentPlayer = humanPlayer;
+        updateCurrentPlayerDisplay();
+    }
 }
 
-function switchPlayer() {
-    currentPlayer = currentPlayer === X_CLASS ? O_CLASS : X_CLASS;
-    updateCurrentPlayerDisplay();
+function getBestMove() {
+    // Simple AI: try to win, block human win, or play randomly
+    let availableMoves = [];
+    for (let i = 0; i < 9; i++) {
+        if (gameState[i] === null) {
+            availableMoves.push(i);
+        }
+    }
+
+    // Try to win
+    for (let move of availableMoves) {
+        gameState[move] = computerPlayer;
+        if (checkWin(computerPlayer)) {
+            gameState[move] = null;
+            return move;
+        }
+        gameState[move] = null;
+    }
+
+    // Try to block human win
+    for (let move of availableMoves) {
+        gameState[move] = humanPlayer;
+        if (checkWin(humanPlayer)) {
+            gameState[move] = null;
+            return move;
+        }
+        gameState[move] = null;
+    }
+
+    // Take center if available
+    if (availableMoves.includes(4)) {
+        return 4;
+    }
+
+    // Take corners if available
+    const corners = [0, 2, 6, 8];
+    for (let corner of corners) {
+        if (availableMoves.includes(corner)) {
+            return corner;
+        }
+    }
+
+    // Random move
+    return availableMoves[Math.floor(Math.random() * availableMoves.length)];
 }
 
-function checkWin() {
+function makeMove(cell, index, player) {
+    gameState[index] = player;
+    cell.classList.add(player);
+
+    // Add animation
+    cell.style.animation = 'pop 0.3s ease';
+    setTimeout(() => {
+        cell.style.animation = '';
+    }, 300);
+}
+
+function checkWin(player) {
     return WINNING_COMBINATIONS.some(combination => {
         return combination.every(index => {
-            return gameState[index] === currentPlayer;
+            return gameState[index] === player;
         });
     });
 }
@@ -82,25 +192,34 @@ function checkDraw() {
     return gameState.every(cell => cell !== null);
 }
 
-function endGame(draw) {
+function endGame(draw, winner = null) {
     gameActive = false;
 
     if (draw) {
         messageText.textContent = "It's a Tie!";
         scores.ties++;
     } else {
-        const winner = currentPlayer === X_CLASS ? 'X' : 'O';
-        messageText.textContent = `Player ${winner} Wins!`;
-        scores[currentPlayer]++;
+        const winnerSymbol = winner === X_CLASS ? 'X' : 'O';
+        const isHumanWinner = winner === humanPlayer;
+        messageText.textContent = isHumanWinner ? `You Win!` : `Computer Wins!`;
+        scores[winner]++;
     }
 
     updateScoreDisplay();
     showGameMessage();
+
+    // Auto-reset after 2 seconds
+    setTimeout(() => {
+        playAgain();
+    }, 2000);
 }
 
 function updateCurrentPlayerDisplay() {
-    const player = currentPlayer === X_CLASS ? 'X' : 'O';
-    currentPlayerText.textContent = `Player ${player}'s turn`;
+    if (currentPlayer === humanPlayer) {
+        currentPlayerText.textContent = "Your turn";
+    } else {
+        currentPlayerText.textContent = "Computer's turn";
+    }
 }
 
 function updateScoreDisplay() {
@@ -118,95 +237,15 @@ function hideGameMessage() {
 }
 
 function resetGame() {
-    currentPlayer = X_CLASS;
-    gameActive = true;
-    gameState = Array(9).fill(null);
-
-    document.querySelectorAll('[data-cell]').forEach(cell => {
-        cell.classList.remove(X_CLASS, O_CLASS);
-    });
-
-    updateCurrentPlayerDisplay();
-    hideGameMessage();
+    startNewGame();
 }
 
 function resetScores() {
     scores = { x: 0, o: 0, ties: 0 };
     updateScoreDisplay();
-    resetGame();
+    startNewGame();
 }
 
 function playAgain() {
-    resetGame();
+    startNewGame();
 }
-
-// Add keyboard support for better accessibility
-document.addEventListener('keydown', function(event) {
-    if (event.key >= '1' && event.key <= '9') {
-        const cellIndex = parseInt(event.key) - 1;
-        const cell = document.querySelectorAll('[data-cell]')[cellIndex];
-        if (cell) {
-            cell.click();
-        }
-    } else if (event.key === 'r' || event.key === 'R') {
-        resetGame();
-    }
-});
-
-// Add visual feedback for winning cells
-function highlightWinningCells(combination) {
-    combination.forEach(index => {
-        const cell = document.querySelectorAll('[data-cell]')[index];
-        cell.style.backgroundColor = '#4CAF50';
-        cell.style.color = 'white';
-    });
-}
-
-// Modified endGame to highlight winning cells
-function endGame(draw) {
-    gameActive = false;
-
-    if (draw) {
-        messageText.textContent = "It's a Tie!";
-        scores.ties++;
-    } else {
-        const winner = currentPlayer === X_CLASS ? 'X' : 'O';
-        messageText.textContent = `Player ${winner} Wins!`;
-        scores[currentPlayer]++;
-
-        // Highlight winning combination
-        const winningCombination = WINNING_COMBINATIONS.find(combination => {
-            return combination.every(index => gameState[index] === currentPlayer);
-        });
-
-        if (winningCombination) {
-            setTimeout(() => highlightWinningCells(winningCombination), 500);
-        }
-    }
-
-    updateScoreDisplay();
-    showGameMessage();
-}
-
-// Add animation for moves
-function makeMove(cell, index) {
-    gameState[index] = currentPlayer;
-    cell.classList.add(currentPlayer);
-
-    // Add pop animation
-    cell.style.animation = 'pop 0.3s ease';
-    setTimeout(() => {
-        cell.style.animation = '';
-    }, 300);
-}
-
-// Add CSS animation keyframes (will be added to CSS if needed)
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes pop {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-`;
-document.head.appendChild(style);

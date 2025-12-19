@@ -15,7 +15,15 @@
 
     <main>
         <div class="game-container">
-            <div class="game-info">
+            <div class="player-selection" id="playerSelection">
+                <h3>Choose Your Symbol</h3>
+                <div class="symbol-buttons">
+                    <button class="symbol-btn" data-symbol="x">Play as X</button>
+                    <button class="symbol-btn" data-symbol="o">Play as O</button>
+                </div>
+            </div>
+
+            <div class="game-info" id="gameInfo" style="display: none;">
                 <div class="current-player">
                     <span id="currentPlayerText">Player X's turn</span>
                 </div>

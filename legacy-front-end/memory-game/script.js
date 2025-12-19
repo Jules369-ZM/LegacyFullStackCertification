@@ -8,6 +8,8 @@ let score = 0;
 let highScore = localStorage.getItem('memoryGameHighScore') || 0;
 let gameActive = false;
 let playerTurn = false;
+let strictMode = false;
+let winAtLevel = 20;
 
 const colorButtons = {
     red: document.getElementById('red'),
@@ -41,6 +43,12 @@ function setupEventListeners() {
     resetBtn.addEventListener('click', resetGame);
     playAgainBtn.addEventListener('click', startGame);
     closeModalBtn.addEventListener('click', closeModal);
+
+    // Strict mode toggle
+    const strictToggle = document.getElementById('strictMode');
+    strictToggle.addEventListener('change', (e) => {
+        strictMode = e.target.checked;
+    });
 
     // Color button event listeners
     Object.keys(colorButtons).forEach(color => {
@@ -121,7 +129,17 @@ function flashButton(color) {
 }
 
 function playSound(color) {
-    // Visual feedback - could be enhanced with actual audio
+    const soundUrls = {
+        red: 'https://cdn.freecodecamp.org/curriculum/take-home-projects/memory-light-game/sound-1.mp3',
+        blue: 'https://cdn.freecodecamp.org/curriculum/take-home-projects/memory-light-game/sound-2.mp3',
+        green: 'https://cdn.freecodecamp.org/curriculum/take-home-projects/memory-light-game/sound-3.mp3',
+        yellow: 'https://cdn.freecodecamp.org/curriculum/take-home-projects/memory-light-game/sound-4.mp3'
+    };
+
+    const audio = new Audio(soundUrls[color]);
+    audio.play().catch(e => console.log('Audio play failed:', e));
+
+    // Keep visual feedback as well
     const button = colorButtons[color];
     button.style.transform = 'scale(1.1)';
 
@@ -139,8 +157,8 @@ function handlePlayerInput(color) {
     const currentIndex = playerSequence.length - 1;
 
     if (playerSequence[currentIndex] !== sequence[currentIndex]) {
-        // Wrong color - game over
-        gameOver();
+        // Wrong color - notify and restart sequence
+        wrongButton();
         return;
     }
 
@@ -160,9 +178,73 @@ function handlePlayerInput(color) {
 
         setTimeout(() => {
             level++;
+
+            // Check for win condition
+            if (level > winAtLevel) {
+                gameWin();
+                return;
+            }
+
             nextLevel();
         }, 1500);
     }
+}
+
+function wrongButton() {
+    playerTurn = false;
+    disablePlayerInput();
+
+    // Visual feedback for wrong button
+    document.querySelector('.game-board').classList.add('error');
+    setTimeout(() => {
+        document.querySelector('.game-board').classList.remove('error');
+    }, 600);
+
+    updateStatus('Wrong! Watch again...');
+
+    // In strict mode, game over with new sequence
+    if (strictMode) {
+        setTimeout(() => {
+            gameOver();
+        }, 1000);
+        return;
+    }
+
+    // Otherwise, restart the same sequence
+    setTimeout(() => {
+        playerSequence = [];
+        updateStatus('Watch the sequence...');
+        playSequence();
+
+        setTimeout(() => {
+            playerTurn = true;
+            updateStatus('Your turn! Repeat the sequence.');
+            enablePlayerInput();
+        }, sequence.length * 600 + 1000);
+    }, 1500);
+}
+
+function gameWin() {
+    gameActive = false;
+    playerTurn = false;
+    disablePlayerInput();
+
+    // Update high score
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('memoryGameHighScore', highScore);
+    }
+
+    updateDisplay();
+    updateStatus('🎉 Congratulations! You Won! 🎉');
+
+    // Show win modal (reuse game over modal for now)
+    finalScoreElement.textContent = score;
+    finalLevelElement.textContent = level;
+    gameOverModal.classList.remove('hidden');
+
+    // Add win styling
+    gameOverModal.querySelector('h2').textContent = 'You Won!';
 }
 
 function gameOver() {

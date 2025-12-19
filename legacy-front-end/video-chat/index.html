@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Video Chat</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-video"></i> P2P Video Chat</h1>
+            <p>Connect with friends through peer-to-peer video calls</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Room Selection Screen -->
+            <div id="roomSelection" class="screen">
+                <div class="welcome-card">
+                    <h2>Welcome to P2P Video Chat</h2>
+                    <p>To get started, we need access to your camera and microphone.</p>
+
+                    <div class="permission-status">
+                        <div id="permissionPrompt" class="permission-item">
+                            <i class="fas fa-video"></i>
+                            <span>Requesting camera and microphone access...</span>
+                        </div>
+                    </div>
+
+                    <div id="roomForm" class="room-form" style="display: none;">
+                        <h3>Enter Room Name</h3>
+                        <form id="roomNameForm">
+                            <input type="text" id="roomNameInput" placeholder="Enter room name" required>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-sign-in-alt"></i> Join Room
+                                </button>
+                            </div>
+                        </form>
+                        <p class="help-text">Room names must be unique. Share the name with your friend to connect!</p>
+                    </div>
+
+                    <div id="errorMessage" class="error-message" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Camera and Microphone Required</h3>
+                        <p>This application requires access to your camera and microphone to function.</p>
+                        <p>Please allow access and refresh the page to try again.</p>
+                        <button id="retryBtn" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Chat Screen -->
+            <div id="videoChat" class="screen hidden">
+                <div class="chat-header">
+                    <div class="room-info">
+                        <h3><i class="fas fa-users"></i> Room: <span id="currentRoomName"></span></h3>
+                        <div class="connection-status">
+                            <span id="statusText">Connecting...</span>
+                        </div>
+                    </div>
+                    <button id="leaveBtn" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Leave Room
+                    </button>
+                </div>
+
+                <div class="video-container">
+                    <div class="video-wrapper">
+                        <video id="localVideo" autoplay muted playsinline></video>
+                        <div class="video-label local-label">You</div>
+                    </div>
+                    <div class="video-wrapper">
+                        <video id="remoteVideo" autoplay playsinline></video>
+                        <div class="video-label remote-label">Waiting for partner...</div>
+                    </div>
+                </div>
+
+                <div class="chat-controls">
+                    <button id="muteBtn" class="btn btn-outline">
+                        <i class="fas fa-microphone"></i> Mute
+                    </button>
+                    <button id="videoBtn" class="btn btn-outline">
+                        <i class="fas fa-video"></i> Turn Off Video
+                    </button>
+                    <button id="fullscreenBtn" class="btn btn-outline">
+                        <i class="fas fa-expand"></i> Fullscreen
+                    </button>
+                </div>
+            </div>
+
+            <!-- Room Full Screen -->
+            <div id="roomFull" class="screen hidden">
+                <div class="message-card">
+                    <i class="fas fa-users-slash"></i>
+                    <h2>Room Full</h2>
+                    <p>This room already has 2 participants. Please try a different room name.</p>
+                    <button id="backToRoomSelect" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Try Another Room
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Notice -->
+        <div class="demo-notice">
+            <div class="notice-content">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Demo Version:</strong> This is a demonstration of the P2P Video Chat interface.
+                    For full functionality, a backend signaling server is required for WebRTC connections.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 P2P Video Chat Application</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

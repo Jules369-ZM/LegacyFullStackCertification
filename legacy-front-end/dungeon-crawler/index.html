@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roguelike Dungeon Crawler</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-dungeon"></i> Roguelike Dungeon Crawler</h1>
+            <p>Navigate the dungeon, defeat enemies, and claim victory!</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="game-container">
+            <!-- Left Panel - Game Stats -->
+            <div class="stats-panel">
+                <div class="player-stats">
+                    <h3><i class="fas fa-user"></i> Player Stats</h3>
+                    <div class="stat-item">
+                        <span class="label">Health:</span>
+                        <div class="health-bar">
+                            <div class="health-fill" id="healthFill"></div>
+                            <span class="health-text" id="healthText">100/100</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Level:</span>
+                        <span class="value" id="playerLevel">1</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">XP:</span>
+                        <span class="value" id="playerXP">0</span>
+                        <span class="xp-needed">/ 100</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Weapon:</span>
+                        <span class="value" id="playerWeapon">Stick</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Attack:</span>
+                        <span class="value" id="playerAttack">5-8</span>
+                    </div>
+                </div>
+
+                <div class="game-info">
+                    <h3><i class="fas fa-info-circle"></i> Game Info</h3>
+                    <div class="info-item">
+                        <span class="label">Floor:</span>
+                        <span class="value" id="currentFloor">1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Enemies Left:</span>
+                        <span class="value" id="enemiesLeft">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Items Found:</span>
+                        <span class="value" id="itemsFound">0</span>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="newGameBtn" class="btn btn-primary">
+                        <i class="fas fa-play"></i> New Game
+                    </button>
+                    <button id="resetBtn" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Center Panel - Game Map -->
+            <div class="game-panel">
+                <div id="gameMap" class="game-map"></div>
+            </div>
+
+            <!-- Right Panel - Messages & Legend -->
+            <div class="info-panel">
+                <div class="messages">
+                    <h3><i class="fas fa-scroll"></i> Adventure Log</h3>
+                    <div id="messageLog" class="message-log">
+                        <!-- Messages will be displayed here -->
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <h3><i class="fas fa-map-marked-alt"></i> Legend</h3>
+                    <div class="legend-item">
+                        <div class="legend-icon player"></div>
+                        <span>You (Player)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon enemy"></div>
+                        <span>Enemy</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon boss"></div>
+                        <span>Boss</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon weapon"></div>
+                        <span>Weapon</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon health"></div>
+                        <span>Health Potion</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon wall"></div>
+                        <span>Wall</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon floor"></div>
+                        <span>Explored Floor</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon unknown"></div>
+                        <span>Unexplored</span>
+                    </div>
+                </div>
+
+                <div class="instructions">
+                    <h3><i class="fas fa-question-circle"></i> How to Play</h3>
+                    <ul>
+                        <li>Use <kbd>WASD</kbd> or arrow keys to move</li>
+                        <li>Walk into enemies to fight them</li>
+                        <li>Pick up items by walking over them</li>
+                        <li>Defeat the boss to win!</li>
+                        <li>Find better weapons and health potions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="gameOverModal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="gameOverTitle">Game Over</h2>
+                <div id="gameOverStats" class="game-over-stats">
+                    <!-- Final stats will be shown here -->
+                </div>
+                <div class="modal-actions">
+                    <button id="playAgainBtn" class="btn btn-primary">Play Again</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Roguelike Dungeon Crawler Game</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

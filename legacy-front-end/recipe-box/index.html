@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Box</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-utensils"></i> Recipe Box</h1>
+            <p>Your personal recipe collection</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Recipe List View -->
+            <div id="recipeListView" class="view">
+                <div class="view-header">
+                    <h2>My Recipes</h2>
+                    <button id="addRecipeBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Recipe
+                    </button>
+                </div>
+
+                <div id="recipeList" class="recipe-list">
+                    <!-- Recipes will be dynamically loaded here -->
+                </div>
+
+                <div id="emptyState" class="empty-state">
+                    <i class="fas fa-book-open"></i>
+                    <h3>No recipes yet</h3>
+                    <p>Click "Add Recipe" to create your first recipe!</p>
+                </div>
+            </div>
+
+            <!-- Recipe Detail View -->
+            <div id="recipeDetailView" class="view hidden">
+                <div class="view-header">
+                    <button id="backToListBtn" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Recipes
+                    </button>
+                    <div class="recipe-actions">
+                        <button id="editRecipeBtn" class="btn btn-outline">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button id="deleteRecipeBtn" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+
+                <div id="recipeDetail" class="recipe-detail">
+                    <!-- Recipe details will be shown here -->
+                </div>
+            </div>
+
+            <!-- Add/Edit Recipe Modal -->
+            <div id="recipeModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modalTitle">Add Recipe</h3>
+                        <button id="closeModalBtn" class="close-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <form id="recipeForm">
+                        <div class="form-group">
+                            <label for="recipeName">Recipe Name</label>
+                            <input type="text" id="recipeName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recipeIngredients">Ingredients</label>
+                            <textarea id="recipeIngredients" rows="8" placeholder="Enter each ingredient on a new line..." required></textarea>
+                            <small>Enter each ingredient on a separate line</small>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Recipe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div id="deleteModal" class="modal hidden">
+                <div class="modal-content small">
+                    <div class="modal-header">
+                        <h3>Delete Recipe</h3>
+                        <button id="closeDeleteModalBtn" class="close-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete "<span id="deleteRecipeName"></span>"?</p>
+                        <p class="warning">This action cannot be undone.</p>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button id="cancelDeleteBtn" class="btn btn-secondary">Cancel</button>
+                        <button id="confirmDeleteBtn" class="btn btn-danger">Delete Recipe</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Recipe Box App</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

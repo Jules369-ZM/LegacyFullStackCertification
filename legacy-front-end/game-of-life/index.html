@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conway's Game of Life</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-dna"></i> Conway's Game of Life</h1>
+            <p>A cellular automaton devised by the British mathematician John Horton Conway</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="game-info">
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="label">Generation</span>
+                        <span id="generationCounter">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Population</span>
+                        <span id="populationCounter">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-container">
+                <div id="grid" class="grid"></div>
+            </div>
+
+            <div class="controls">
+                <button id="startBtn" class="btn btn-primary">
+                    <i class="fas fa-play"></i> Start
+                </button>
+                <button id="stopBtn" class="btn btn-secondary" disabled>
+                    <i class="fas fa-stop"></i> Stop
+                </button>
+                <button id="stepBtn" class="btn btn-outline">
+                    <i class="fas fa-step-forward"></i> Step
+                </button>
+                <button id="clearBtn" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+                <button id="randomBtn" class="btn btn-outline">
+                    <i class="fas fa-random"></i> Random
+                </button>
+            </div>
+
+            <div class="presets">
+                <h3>Presets</h3>
+                <div class="preset-buttons">
+                    <button id="gliderBtn" class="btn btn-small">Glider</button>
+                    <button id="beaconBtn" class="btn btn-small">Beacon</button>
+                    <button id="pulsarBtn" class="btn btn-small">Pulsar</button>
+                    <button id="gosperBtn" class="btn btn-small">Gosper Glider Gun</button>
+                    <button id="toadBtn" class="btn btn-small">Toad</button>
+                    <button id="blinkerBtn" class="btn btn-small">Blinker</button>
+                </div>
+            </div>
+
+            <div class="rules">
+                <h3>Rules of Life</h3>
+                <div class="rules-grid">
+                    <div class="rule">
+                        <i class="fas fa-baby"></i>
+                        <div>
+                            <strong>Birth</strong>
+                            <p>Dead cell with exactly 3 live neighbors becomes alive</p>
+                        </div>
+                    </div>
+                    <div class="rule">
+                        <i class="fas fa-heart"></i>
+                        <div>
+                            <strong>Survival</strong>
+                            <p>Live cell with 2-3 live neighbors survives</p>
+                        </div>
+                    </div>
+                    <div class="rule">
+                        <i class="fas fa-skull-crossbones"></i>
+                        <div>
+                            <strong>Death</strong>
+                            <p>Live cell with <2 or >3 neighbors dies</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3>How to Play</h3>
+                <ul>
+                    <li>Click cells to toggle them alive/dead when stopped</li>
+                    <li>Use presets for interesting starting patterns</li>
+                    <li>Click "Random" for a random starting configuration</li>
+                    <li>Watch as generations evolve according to the rules</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Conway's Game of Life Implementation</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
