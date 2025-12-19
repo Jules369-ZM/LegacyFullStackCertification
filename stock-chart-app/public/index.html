@@ -5,22 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stock Market Chart</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
     <h1>Stock Market Chart</h1>
-    <div class="search-container">
-      <input type="text" id="stockSymbol" placeholder="Enter stock symbol (e.g., AAPL)" value="AAPL">
-      <button id="searchBtn">Get Chart</button>
+    <div class="controls">
+      <div class="search-container">
+        <input type="text" id="stockSymbol" placeholder="Enter stock symbol (e.g., AAPL, GOOGL, MSFT)" maxlength="10">
+        <button id="addBtn">Add Stock</button>
+      </div>
     </div>
   </header>
 
   <main>
-    <div id="chartContainer">
-      <canvas id="stockChart"></canvas>
+    <div id="stocksContainer">
+      <div class="welcome-message">
+        <h2>Welcome to Stock Market Chart</h2>
+        <p>Add stock symbols above to view their price trends. All users see the same charts in real-time!</p>
+        <div class="example-stocks">
+          <span>Try: </span>
+          <button class="example-btn" onclick="addStock('AAPL')">AAPL</button>
+          <button class="example-btn" onclick="addStock('GOOGL')">GOOGL</button>
+          <button class="example-btn" onclick="addStock('MSFT')">MSFT</button>
+          <button class="example-btn" onclick="addStock('TSLA')">TSLA</button>
+        </div>
+      </div>
     </div>
-    <div id="stockInfo"></div>
+
+    <div id="loading" class="loading" style="display: none;">
+      Loading stock data...
+    </div>
   </main>
 
   <script src="script.js"></script>
