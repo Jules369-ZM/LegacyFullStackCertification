@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National Contiguity - Force Directed Graph</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-globe-americas"></i> National Contiguity</h1>
+            <p>Force-directed graph showing countries that share borders</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="graph-container">
+                <div class="graph-header">
+                    <h2>Country Border Relationships</h2>
+                    <div class="graph-info">
+                        <span id="nodeCount">Loading...</span> countries •
+                        <span id="linkCount">Loading...</span> border connections
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="resetBtn" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset View
+                    </button>
+                    <button id="toggleLabelsBtn" class="btn btn-outline">
+                        <i class="fas fa-tag"></i> Toggle Labels
+                    </button>
+                    <button id="zoomInBtn" class="btn btn-outline">
+                        <i class="fas fa-plus"></i> Zoom In
+                    </button>
+                    <button id="zoomOutBtn" class="btn btn-outline">
+                        <i class="fas fa-minus"></i> Zoom Out
+                    </button>
+                </div>
+
+                <div id="graphArea" class="graph-area">
+                    <!-- D3.js graph will be rendered here -->
+                    <div id="loading" class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading country data...</p>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <h3><i class="fas fa-info-circle"></i> How to Use</h3>
+                    <ul>
+                        <li><strong>Drag</strong> nodes to reposition countries</li>
+                        <li><strong>Hover</strong> over countries to see details</li>
+                        <li><strong>Scroll</strong> to zoom in/out</li>
+                        <li>Lines show border relationships between countries</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="country-info" id="countryInfo">
+                    <h3><i class="fas fa-flag"></i> Country Information</h3>
+                    <div id="countryDetails" class="country-details">
+                        <p class="no-selection">Hover over a country to see details</p>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
+                    <div class="stat-item">
+                        <span class="label">Total Countries:</span>
+                        <span class="value" id="totalCountries">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Border Connections:</span>
+                        <span class="value" id="totalBorders">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Most Connected:</span>
+                        <span class="value" id="mostConnected">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Isolated Countries:</span>
+                        <span class="value" id="isolatedCountries">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 National Contiguity Visualization | Data: DealPete</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

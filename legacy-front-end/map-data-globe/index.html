@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meteorite Landings - World Map</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-meteor"></i> Meteorite Landings Worldwide</h1>
+            <p>Interactive map showing meteorite strike locations and sizes</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="map-container">
+                <div class="map-header">
+                    <h2>Global Meteorite Distribution</h2>
+                    <div class="map-info">
+                        <span id="meteoriteCount">Loading...</span> meteorites mapped •
+                        <span id="totalMass">Loading...</span> total mass
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="filter-controls">
+                        <label for="massFilter">Minimum Mass (kg):</label>
+                        <input type="range" id="massFilter" min="0" max="100000" value="0" step="100">
+                        <span id="massValue">0</span> kg
+                    </div>
+                    <div class="view-controls">
+                        <button id="resetZoomBtn" class="btn btn-secondary">
+                            <i class="fas fa-home"></i> Reset View
+                        </button>
+                        <button id="toggleLegendBtn" class="btn btn-outline">
+                            <i class="fas fa-info-circle"></i> Toggle Legend
+                        </button>
+                    </div>
+                </div>
+
+                <div id="mapArea" class="map-area">
+                    <!-- D3.js map will be rendered here -->
+                    <div id="loading" class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading meteorite data...</p>
+                    </div>
+                </div>
+
+                <div id="legend" class="legend">
+                    <h3><i class="fas fa-palette"></i> Mass Scale</h3>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-circle small"></div>
+                            <span>Small (< 1kg)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-circle medium"></div>
+                            <span>Medium (1-100kg)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-circle large"></div>
+                            <span>Large (100-10,000kg)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-circle huge"></div>
+                            <span>Massive (> 10,000kg)</span>
+                        </div>
+                    </div>
+                    <div class="legend-note">
+                        <p>Circle size represents meteorite mass</p>
+                        <p>Hover for detailed information</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="meteorite-info" id="meteoriteInfo">
+                    <h3><i class="fas fa-info-circle"></i> Meteorite Details</h3>
+                    <div id="meteoriteDetails" class="meteorite-details">
+                        <p class="no-selection">Hover over a meteorite to see details</p>
+                    </div>
+                </div>
+
+                <div class="statistics">
+                    <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
+                    <div class="stat-item">
+                        <span class="label">Total Meteorites:</span>
+                        <span class="value" id="statTotal">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Average Mass:</span>
+                        <span class="value" id="statAverage">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Largest Meteorite:</span>
+                        <span class="value" id="statLargest">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Most Recent:</span>
+                        <span class="value" id="statRecent">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Countries Affected:</span>
+                        <span class="value" id="statCountries">-</span>
+                    </div>
+                </div>
+
+                <div class="top-meteorites">
+                    <h3><i class="fas fa-trophy"></i> Top 5 Largest</h3>
+                    <div id="topMeteorites" class="top-list">
+                        <!-- Top meteorites will be listed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Meteorite Landings Map | Data: NASA Meteorite Landings Database</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
