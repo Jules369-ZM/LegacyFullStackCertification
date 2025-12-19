@@ -315,6 +315,67 @@ const searchSchema = new mongoose.Schema({
 
 const Search = mongoose.model('Search', searchSchema);
 
+// Image search endpoint
+app.get('/query/:searchterm', async (req, res) => {
+  const searchTerm = req.params.searchterm;
+  const page = parseInt(req.query.page) || 1;
+  const offset = (page - 1) * 10; // 10 results per page
+
+  try {
+    // Save search term to database
+    const newSearch = new Search({ term: searchTerm });
+    await newSearch.save();
+
+    // Bing Image Search API request
+    const bingUrl = `https://api.bing.microsoft.com/v7.0/images/search`;
+    const response = await axios.get(bingUrl, {
+      headers: {
+        'Ocp-Apim-Subscription-Key': process.env.BING_API_KEY
+      },
+      params: {
+        q: searchTerm,
+        count: 10,
+        offset: offset,
+        mkt: 'en-US',
+        safeSearch: 'Moderate'
+      }
+    });
+
+    // Format the response
+    const images = response.data.value.map(image => ({
+      url: image.contentUrl,
+      snippet: image.name,
+      thumbnail: image.thumbnailUrl,
+      context: image.hostPageUrl
+    }));
+
+    res.json(images);
+  } catch (error) {
+    console.error('Image search error:', error);
+    res.status(500).json({ error: 'Failed to search images' });
+  }
+});
+
+// Recent searches endpoint
+app.get('/recent/', async (req, res) => {
+  try {
+    const recentSearches = await Search.find({})
+      .sort({ when: -1 })
+      .limit(10)
+      .select('term when -_id');
+
+    const formattedSearches = recentSearches.map(search => ({
+      term: search.term,
+      when: search.when.toISOString()
+    }));
+
+    res.json(formattedSearches);
+  } catch (error) {
+    console.error('Recent searches error:', error);
+    res.status(500).json({ error: 'Failed to get recent searches' });
+  }
+});
+
 // ==================== FILE METADATA MICROSERVICE ====================
 const upload = multer({ dest: 'uploads/' });
 

@@ -47,13 +47,14 @@ This directory contains implementations of the Back End Development and APIs cer
   - File storage in uploads directory
 
 ### 6. Image Search Abstraction Layer
-- **Routes**: `GET /api/imagesearch/:searchterm`, `GET /api/latest/imagesearch`
+- **Routes**: `GET /query/:searchterm?page=1`, `GET /recent/`
 - **Description**: Searches for images using Bing Image Search API and tracks search history
 - **Features**:
-  - Image search with customizable result count
+  - Image search with pagination (?page=2 parameter)
   - Search history storage in MongoDB
-  - Returns image URLs, thumbnails, and metadata
-  - Latest searches endpoint
+  - Returns image URLs, descriptions, thumbnails, and page URLs
+  - Recent searches endpoint with timestamps
+  - Full-stack web interface at `/image-search.html`
 
 ## Technologies Used
 
@@ -113,8 +114,9 @@ This directory contains implementations of the Back End Development and APIs cer
 - `POST /api/fileanalyse` - Upload file and get metadata
 
 ### Image Search Abstraction Layer
-- `GET /api/imagesearch/:searchterm?offset=10` - Search for images and return results
-- `GET /api/latest/imagesearch` - Get latest 10 search queries
+- `GET /query/:searchterm?page=1` - Search for images with pagination
+- `GET /recent/` - Get list of most recently submitted search strings
+- `GET /image-search.html` - Full-stack web interface
 
 ## FreeCodeCamp Certification
 
