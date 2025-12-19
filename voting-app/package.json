@@ -15,12 +15,14 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.1",
+    "chart.js": "^4.5.1",
     "connect-mongo": "^6.0.0",
     "cors": "^2.8.5",
     "express": "^5.2.1",
     "express-session": "^1.18.2",
     "mongoose": "^9.0.1",
     "passport": "^0.7.0",
+    "passport-github2": "^0.1.12",
     "passport-local": "^1.0.0"
   },
   "devDependencies": {

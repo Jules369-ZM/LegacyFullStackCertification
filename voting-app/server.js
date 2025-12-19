@@ -2,8 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const bcrypt = require('bcryptjs');
+const GitHubStrategy = require('passport-github2').Strategy;
 const MongoStore = require('connect-mongo');
 require('dotenv').config();
 
@@ -18,8 +17,8 @@ app.use(express.static('public'));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI })
+  saveUninitialized: false
+  // store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }) // Uncomment when MongoDB is available
 }));
 
 // Passport configuration
@@ -31,8 +30,11 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/votingapp')
 
 // User Schema
 const userSchema = new mongoose.Schema({
+  githubId: { type: String, required: true, unique: true },
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
+  displayName: { type: String },
+  profileImage: { type: String, default: '' },
+  createdAt: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model('User', userSchema);
@@ -47,15 +49,23 @@ const pollSchema = new mongoose.Schema({
 
 const Poll = mongoose.model('Poll', pollSchema);
 
-// Passport Local Strategy
-passport.use(new LocalStrategy(async (username, password, done) => {
+// Passport GitHub Strategy
+passport.use(new GitHubStrategy({
+  clientID: process.env.GITHUB_CLIENT_ID,
+  clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  callbackURL: 'http://localhost:3001/auth/github/callback'
+}, async (accessToken, refreshToken, profile, done) => {
   try {
-    const user = await User.findOne({ username });
-    if (!user) return done(null, false, { message: 'Incorrect username.' });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
-
+    let user = await User.findOne({ githubId: profile.id });
+    if (!user) {
+      user = new User({
+        githubId: profile.id,
+        username: profile.username,
+        displayName: profile.displayName,
+        profileImage: profile.photos[0].value
+      });
+      await user.save();
+    }
     return done(null, user);
   } catch (err) {
     return done(err);
@@ -81,31 +91,12 @@ app.get('/', (req, res) => {
 });
 
 // Authentication routes
-app.get('/login', (req, res) => {
-  res.sendFile(__dirname + '/public/login.html');
-});
+app.get('/auth/github', passport.authenticate('github'));
 
-app.post('/login', passport.authenticate('local', {
+app.get('/auth/github/callback', passport.authenticate('github', {
   successRedirect: '/',
-  failureRedirect: '/login',
-  failureFlash: false
+  failureRedirect: '/login'
 }));
-
-app.get('/register', (req, res) => {
-  res.sendFile(__dirname + '/public/register.html');
-});
-
-app.post('/register', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ username, password: hashedPassword });
-    await user.save();
-    res.redirect('/login');
-  } catch (err) {
-    res.redirect('/register');
-  }
-});
 
 app.get('/logout', (req, res) => {
   req.logout(() => {
@@ -151,6 +142,97 @@ app.post('/api/polls/:id/vote', ensureAuthenticated, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Get user's polls
+app.get('/api/my-polls', ensureAuthenticated, async (req, res) => {
+  try {
+    const polls = await Poll.find({ createdBy: req.user._id }).populate('createdBy', 'username');
+    res.json(polls);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete poll
+app.delete('/api/polls/:id', ensureAuthenticated, async (req, res) => {
+  try {
+    const poll = await Poll.findById(req.params.id);
+    if (!poll) return res.status(404).json({ error: 'Poll not found' });
+
+    if (poll.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'You can only delete your own polls' });
+    }
+
+    await Poll.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Poll deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add new option to existing poll
+app.post('/api/polls/:id/options', ensureAuthenticated, async (req, res) => {
+  try {
+    const { optionText } = req.body;
+    if (!optionText || !optionText.trim()) {
+      return res.status(400).json({ error: 'Option text is required' });
+    }
+
+    const poll = await Poll.findById(req.params.id);
+    if (!poll) return res.status(404).json({ error: 'Poll not found' });
+
+    // Check if option already exists
+    const existingOption = poll.options.find(opt => opt.text.toLowerCase() === optionText.toLowerCase());
+    if (existingOption) {
+      return res.status(400).json({ error: 'This option already exists' });
+    }
+
+    poll.options.push({ text: optionText.trim(), votes: 0 });
+    await poll.save();
+    res.json(poll);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get poll share URL
+app.get('/api/polls/:id/share', async (req, res) => {
+  try {
+    const poll = await Poll.findById(req.params.id);
+    if (!poll) return res.status(404).json({ error: 'Poll not found' });
+
+    const shareUrl = `${req.protocol}://${req.get('host')}/poll/${poll._id}`;
+    res.json({ shareUrl, poll });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get poll by ID (for sharing)
+app.get('/poll/:id', (req, res) => {
+  res.sendFile(__dirname + '/public/poll.html');
+});
+
+app.get('/api/polls/:id', async (req, res) => {
+  try {
+    const poll = await Poll.findById(req.params.id).populate('createdBy', 'username');
+    if (!poll) return res.status(404).json({ error: 'Poll not found' });
+
+    res.json(poll);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get current user info
+app.get('/api/user', ensureAuthenticated, (req, res) => {
+  res.json({
+    id: req.user._id,
+    username: req.user.username,
+    displayName: req.user.displayName,
+    profileImage: req.user.profileImage
+  });
 });
 
 // Middleware to check authentication

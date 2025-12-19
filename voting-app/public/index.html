@@ -4,38 +4,104 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Voting App</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
     <h1>Voting App</h1>
-    <nav>
-      <a href="/">Home</a>
-      <a href="/login">Login</a>
-      <a href="/register">Register</a>
-      <a href="/logout">Logout</a>
+    <nav id="nav">
+      <div class="nav-left">
+        <a href="/" class="active">All Polls</a>
+        <a href="#" id="myPollsLink" style="display: none;">My Polls</a>
+      </div>
+      <div class="nav-right">
+        <a href="/login" id="loginLink">Login</a>
+        <a href="/logout" id="logoutLink" style="display: none;">Logout</a>
+      </div>
     </nav>
   </header>
 
   <main>
-    <section id="polls">
-      <h2>Polls</h2>
-      <button id="createPollBtn">Create New Poll</button>
-      <div id="pollsList"></div>
-    </section>
-
-    <section id="createPoll" style="display: none;">
-      <h2>Create Poll</h2>
-      <form id="pollForm">
-        <input type="text" id="pollTitle" placeholder="Poll Title" required>
-        <div id="options">
-          <input type="text" class="option" placeholder="Option 1" required>
-          <input type="text" class="option" placeholder="Option 2" required>
+    <!-- Welcome section for unauthenticated users -->
+    <div id="welcomeSection" class="welcome-section">
+      <div class="welcome-content">
+        <h2>Welcome to Voting App</h2>
+        <p>Create polls, vote on topics that matter to you, and see results in beautiful charts!</p>
+        <div class="welcome-features">
+          <div class="feature">
+            <span class="feature-icon">📊</span>
+            <h3>Visual Results</h3>
+            <p>See poll results in interactive charts</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🗳️</span>
+            <h3>Easy Voting</h3>
+            <p>Vote once per poll with instant results</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">📤</span>
+            <h3>Share Polls</h3>
+            <p>Share your polls with friends and colleagues</p>
+          </div>
         </div>
-        <button type="button" id="addOption">Add Option</button>
-        <button type="submit">Create Poll</button>
-      </form>
-    </section>
+      </div>
+    </div>
+
+    <!-- Poll creation section -->
+    <div id="createPollSection" class="create-poll-section" style="display: none;">
+      <div class="create-poll-container">
+        <h2>Create New Poll</h2>
+        <form id="pollForm">
+          <div class="form-group">
+            <label for="pollTitle">Poll Title</label>
+            <input type="text" id="pollTitle" placeholder="What would you like to ask?" required>
+          </div>
+
+          <div class="options-section">
+            <label>Options</label>
+            <div id="optionsContainer">
+              <div class="option-input">
+                <input type="text" class="option" placeholder="Option 1" required>
+                <button type="button" class="remove-option" style="display: none;">×</button>
+              </div>
+              <div class="option-input">
+                <input type="text" class="option" placeholder="Option 2" required>
+                <button type="button" class="remove-option" style="display: none;">×</button>
+              </div>
+            </div>
+            <button type="button" id="addOptionBtn" class="add-option-btn">+ Add Option</button>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="cancelCreateBtn" class="cancel-btn">Cancel</button>
+            <button type="submit" class="create-btn">Create Poll</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main polls display -->
+    <div id="pollsSection" class="polls-section">
+      <div class="polls-header">
+        <h2 id="pollsTitle">All Polls</h2>
+        <button id="createPollBtn" class="create-poll-btn" style="display: none;">
+          + Create Poll
+        </button>
+      </div>
+
+      <div id="pollsContainer" class="polls-container">
+        <div class="loading">Loading polls...</div>
+      </div>
+    </div>
+
+    <!-- Poll detail modal -->
+    <div id="pollModal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div id="pollDetail"></div>
+      </div>
+    </div>
   </main>
 
   <script src="script.js"></script>

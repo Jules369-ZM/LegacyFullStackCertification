@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shared Poll - Voting App</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Voting App</h1>
+    <nav>
+      <a href="/">← All Polls</a>
+      <a href="/login">Login</a>
+      <a href="/logout">Logout</a>
+    </nav>
+  </header>
+
+  <main>
+    <div id="pollContainer">
+      <div class="loading">Loading poll...</div>
+    </div>
+  </main>
+
+  <script>
+    const pollId = window.location.pathname.split('/').pop();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPoll();
+    });
+
+    async function loadPoll() {
+      try {
+        const response = await fetch(`/api/polls/${pollId}`);
+        const poll = await response.json();
+
+        if (response.ok) {
+          displayPoll(poll);
+        } else {
+          document.getElementById('pollContainer').innerHTML = '<div class="error">Poll not found</div>';
+        }
+      } catch (error) {
+        console.error('Error loading poll:', error);
+        document.getElementById('pollContainer').innerHTML = '<div class="error">Failed to load poll</div>';
+      }
+    }
+
+    function displayPoll(poll) {
+      const container = document.getElementById('pollContainer');
+
+      // Check if user has already voted (stored in localStorage)
+      const hasVoted = localStorage.getItem(`voted_${poll._id}`);
+
+      container.innerHTML = `
+        <div class="poll-detail">
+          <div class="poll-header">
+            <h2>${poll.title}</h2>
+            <p class="poll-meta">Created by ${poll.createdBy.username}</p>
+          </div>
+
+          ${hasVoted ? renderResults(poll) : renderVoting(poll)}
+
+          <div class="poll-actions">
+            <button onclick="sharePoll('${poll._id}')" class="share-btn">📤 Share Poll</button>
+            <a href="/" class="back-btn">← Back to All Polls</a>
+          </div>
+        </div>
+      `;
+
+      // Render chart if showing results
+      if (hasVoted) {
+        setTimeout(() => renderChart(poll), 100);
+      }
+    }
+
+    function renderVoting(poll) {
+      return `
+        <div class="voting-section">
+          <h3>Cast your vote:</h3>
+          <div class="options-list">
+            ${poll.options.map((option, index) => `
+              <button class="vote-option" onclick="vote('${poll._id}', ${index})">
+                ${option.text}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderResults(poll) {
+      const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
+
+      return `
+        <div class="results-section">
+          <h3>Results (${totalVotes} total votes)</h3>
+          <div class="chart-container">
+            <canvas id="resultsChart"></canvas>
+          </div>
+          <div class="results-list">
+            ${poll.options.map(option => {
+              const percentage = totalVotes > 0 ? ((option.votes / totalVotes) * 100).toFixed(1) : 0;
+              return `
+                <div class="result-item">
+                  <span class="option-text">${option.text}</span>
+                  <span class="vote-count">${option.votes} votes (${percentage}%)</span>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${percentage}%"></div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    async function vote(pollId, optionIndex) {
+      try {
+        const response = await fetch(`/api/polls/${pollId}/vote`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ optionIndex })
+        });
+
+        if (response.ok) {
+          // Mark as voted in localStorage
+          localStorage.setItem(`voted_${pollId}`, 'true');
+          // Reload to show results
+          loadPoll();
+        } else if (response.status === 401) {
+          alert('Please login to vote');
+          window.location.href = '/login';
+        } else {
+          const data = await response.json();
+          alert(data.error || 'Failed to vote');
+        }
+      } catch (error) {
+        console.error('Error voting:', error);
+        alert('Failed to vote');
+      }
+    }
+
+    async function sharePoll(pollId) {
+      try {
+        const response = await fetch(`/api/polls/${pollId}/share`);
+        const data = await response.json();
+
+        if (response.ok) {
+          // Copy to clipboard
+          navigator.clipboard.writeText(data.shareUrl).then(() => {
+            alert('Poll link copied to clipboard!');
+          }).catch(() => {
+            // Fallback: show the URL
+            alert(`Share this link: ${data.shareUrl}`);
+          });
+        }
+      } catch (error) {
+        console.error('Error getting share link:', error);
+      }
+    }
+
+    // Render chart when showing results
+    function renderChart(poll) {
+      const ctx = document.getElementById('resultsChart').getContext('2d');
+
+      const labels = poll.options.map(opt => opt.text);
+      const data = poll.options.map(opt => opt.votes);
+
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: [
+              '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+              '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+            ],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
