@@ -2,8 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const bcrypt = require('bcryptjs');
+const GitHubStrategy = require('passport-github2').Strategy;
 const MongoStore = require('connect-mongo');
 const axios = require('axios');
 require('dotenv').config();
@@ -19,8 +18,8 @@ app.use(express.static('public'));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI })
+  saveUninitialized: false
+  // store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }) // Uncomment when MongoDB is available
 }));
 
 // Passport configuration
@@ -32,8 +31,12 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/nightlifeap
 
 // User Schema
 const userSchema = new mongoose.Schema({
+  githubId: { type: String, required: true, unique: true },
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
+  displayName: { type: String },
+  profileImage: { type: String, default: '' },
+  lastSearchLocation: { type: String, default: 'New York, NY' },
+  createdAt: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model('User', userSchema);
@@ -69,15 +72,23 @@ const mockBars = [
   }
 ];
 
-// Passport Local Strategy
-passport.use(new LocalStrategy(async (username, password, done) => {
+// Passport GitHub Strategy
+passport.use(new GitHubStrategy({
+  clientID: process.env.GITHUB_CLIENT_ID,
+  clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  callbackURL: 'http://localhost:3002/auth/github/callback'
+}, async (accessToken, refreshToken, profile, done) => {
   try {
-    const user = await User.findOne({ username });
-    if (!user) return done(null, false, { message: 'Incorrect username.' });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
-
+    let user = await User.findOne({ githubId: profile.id });
+    if (!user) {
+      user = new User({
+        githubId: profile.id,
+        username: profile.username,
+        displayName: profile.displayName,
+        profileImage: profile.photos[0].value
+      });
+      await user.save();
+    }
     return done(null, user);
   } catch (err) {
     return done(err);
@@ -103,31 +114,12 @@ app.get('/', (req, res) => {
 });
 
 // Authentication routes
-app.get('/login', (req, res) => {
-  res.sendFile(__dirname + '/public/login.html');
-});
+app.get('/auth/github', passport.authenticate('github'));
 
-app.post('/login', passport.authenticate('local', {
+app.get('/auth/github/callback', passport.authenticate('github', {
   successRedirect: '/',
-  failureRedirect: '/login',
-  failureFlash: false
+  failureRedirect: '/login'
 }));
-
-app.get('/register', (req, res) => {
-  res.sendFile(__dirname + '/public/register.html');
-});
-
-app.post('/register', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ username, password: hashedPassword });
-    await user.save();
-    res.redirect('/login');
-  } catch (err) {
-    res.redirect('/register');
-  }
-});
 
 app.get('/logout', (req, res) => {
   req.logout(() => {
@@ -135,25 +127,73 @@ app.get('/logout', (req, res) => {
   });
 });
 
+// Function to fetch bars from Yelp API
+async function fetchBarsFromYelp(location) {
+  try {
+    const apiKey = process.env.YELP_API_KEY;
+    if (!apiKey) {
+      console.warn('Yelp API key not found, using mock data');
+      return mockBars;
+    }
+
+    const response = await axios.get('https://api.yelp.com/v3/businesses/search', {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`
+      },
+      params: {
+        term: 'bars',
+        location: location,
+        limit: 20,
+        sort_by: 'rating'
+      }
+    });
+
+    return response.data.businesses.map(business => ({
+      id: business.id,
+      name: business.name,
+      image_url: business.image_url || 'https://via.placeholder.com/300x200?text=No+Image',
+      url: business.url,
+      location: {
+        city: business.location.city,
+        state: business.location.state
+      },
+      rating: business.rating,
+      review_count: business.review_count
+    }));
+  } catch (error) {
+    console.error('Error fetching from Yelp API:', error.message);
+    console.log('Using mock data instead');
+    return mockBars;
+  }
+}
+
 // API routes
 app.get('/api/bars', async (req, res) => {
-  const location = req.query.location || 'New York, NY';
-  // In real app, call Yelp API
-  // For now, return mock data
-  const bars = mockBars.map(bar => ({
-    ...bar,
-    going: 0 // Will be updated with actual going count
-  }));
+  try {
+    const location = req.query.location || 'New York, NY';
 
-  // Get going counts from database
-  for (let bar of bars) {
-    const dbBar = await Bar.findOne({ yelpId: bar.id }).populate('going');
-    if (dbBar) {
-      bar.going = dbBar.going.length;
+    // Save location to user session if authenticated
+    if (req.user) {
+      await User.findByIdAndUpdate(req.user._id, { lastSearchLocation: location });
     }
-  }
 
-  res.json(bars);
+    const bars = await fetchBarsFromYelp(location);
+
+    // Get going counts from database for each bar
+    for (let bar of bars) {
+      const dbBar = await Bar.findOne({ yelpId: bar.id }).populate('going');
+      if (dbBar) {
+        bar.going = dbBar.going.length;
+      } else {
+        bar.going = 0;
+      }
+    }
+
+    res.json(bars);
+  } catch (error) {
+    console.error('Error in /api/bars:', error);
+    res.status(500).json({ error: 'Failed to fetch bars' });
+  }
 });
 
 app.post('/api/bars/:id/rsvp', ensureAuthenticated, async (req, res) => {
@@ -162,10 +202,11 @@ app.post('/api/bars/:id/rsvp', ensureAuthenticated, async (req, res) => {
     let bar = await Bar.findOne({ yelpId: barId });
 
     if (!bar) {
-      // Create bar entry
+      // Create bar entry - we'll get the name from Yelp API or use a placeholder
+      // For now, create with minimal info and update later if needed
       bar = new Bar({
         yelpId: barId,
-        name: mockBars.find(b => b.id === barId)?.name || 'Unknown Bar',
+        name: 'Bar', // Placeholder - could be updated when we fetch from Yelp
         going: [req.user._id]
       });
     } else {
@@ -179,10 +220,21 @@ app.post('/api/bars/:id/rsvp', ensureAuthenticated, async (req, res) => {
     }
 
     await bar.save();
-    res.json({ going: bar.going.length });
+    res.json({ going: bar.going.length, isGoing: bar.going.includes(req.user._id) });
   } catch (err) {
+    console.error('RSVP error:', err);
     res.status(500).json({ error: err.message });
   }
+});
+
+app.get('/api/user', ensureAuthenticated, (req, res) => {
+  res.json({
+    id: req.user._id,
+    username: req.user.username,
+    profileImage: req.user.profileImage,
+    displayName: req.user.displayName,
+    lastSearchLocation: req.user.lastSearchLocation
+  });
 });
 
 // Middleware to check authentication

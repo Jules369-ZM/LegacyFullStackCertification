@@ -9,18 +9,25 @@
 <body>
   <header>
     <h1>Nightlife Coordination</h1>
-    <nav>
-      <input type="text" id="locationInput" placeholder="Enter location" value="New York, NY">
-      <button id="searchBtn">Search</button>
-      <a href="/login">Login</a>
-      <a href="/register">Register</a>
-      <a href="/logout">Logout</a>
+    <nav id="nav">
+      <div class="search-container">
+        <input type="text" id="locationInput" placeholder="Enter city, state or zip" value="New York, NY">
+        <button id="searchBtn">Search Bars</button>
+      </div>
+      <div id="authLinks">
+        <a href="/login">Login</a>
+        <a href="/logout" id="logoutLink" style="display: none;">Logout</a>
+      </div>
     </nav>
   </header>
 
   <main>
+    <div class="search-info" id="searchInfo" style="display: none;">
+      <p id="searchText"></p>
+    </div>
+
     <div id="barsContainer">
-      <!-- Bars will be loaded here -->
+      <div class="loading">Loading bars...</div>
     </div>
   </main>
 

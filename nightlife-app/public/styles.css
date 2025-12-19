@@ -1,77 +1,220 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #1a1a1a;
-  color: white;
+  background-color: #f8f9fa;
+  color: #333;
+  line-height: 1.6;
 }
 
 header {
-  background-color: #333;
-  padding: 1rem;
-  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-nav {
+h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 300;
+}
+
+#nav {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 1rem auto 0;
+}
+
+.search-container {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1;
+  max-width: 400px;
+}
+
+#locationInput {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  outline: none;
+}
+
+#locationInput::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+#searchBtn {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+#searchBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+#authLinks {
+  display: flex;
   align-items: center;
   gap: 1rem;
-  margin-top: 1rem;
 }
 
-nav a {
+#authLinks a {
   color: white;
   text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background-color 0.2s;
+}
+
+#authLinks a:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.user-info {
+  font-weight: 500;
 }
 
 main {
   max-width: 1200px;
-  margin: 2rem auto;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.search-info {
+  background: white;
   padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  text-align: center;
+  color: #666;
 }
 
 .bar {
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
   margin: 1rem 0;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.bar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 25px rgba(0,0,0,0.15);
 }
 
 .bar img {
   width: 200px;
   height: 150px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .bar-info {
   flex: 1;
+  min-width: 0;
 }
 
 .bar-info h3 {
-  margin-top: 0;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.bar-info h3 a {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.bar-info h3 a:hover {
+  color: #667eea;
 }
 
 .bar-info p {
-  margin: 0.5rem 0;
+  margin: 0.25rem 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.location {
+  color: #667eea !important;
+  font-weight: 500;
+}
+
+.rating {
+  color: #ffa500 !important;
+  font-weight: 500;
+}
+
+.going-count {
+  font-weight: 500;
+  color: #333 !important;
+  margin-bottom: 1rem !important;
 }
 
 .going-btn {
-  background-color: #007bff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
   cursor: pointer;
   font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  min-width: 140px;
+}
+
+.going-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .going-btn.going {
-  background-color: #28a745;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+}
+
+.going-btn.going:hover {
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+}
+
+.loading, .error, .no-results {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.error {
+  color: #e74c3c;
+}
+
+.no-results {
+  color: #f39c12;
 }
 
 form {
@@ -96,4 +239,98 @@ button {
 
 button:hover {
   background-color: #0056b3;
+}
+
+/* Login page styles */
+.login-container {
+  max-width: 400px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.login-container p {
+  margin-bottom: 2rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.github-login-btn {
+  display: inline-block;
+  padding: 1rem 2rem;
+  background: #24292e;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: background-color 0.2s;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.github-login-btn:hover {
+  background: #1b1f23;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  header {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  #nav {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .search-container {
+    max-width: none;
+    width: 100%;
+  }
+
+  #locationInput {
+    flex: 1;
+  }
+
+  main {
+    padding: 1rem;
+  }
+
+  .bar {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .bar img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+  }
+
+  .login-container {
+    margin: 2rem 1rem;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .going-btn {
+    width: 100%;
+    min-width: auto;
+  }
+
+  #searchBtn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
 }
