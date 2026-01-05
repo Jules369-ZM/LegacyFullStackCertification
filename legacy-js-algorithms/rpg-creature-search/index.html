@@ -1,165 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RPG Creature Search</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Creature Search App</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="app">
-    <header>
-      <h1><i class="fas fa-dragon"></i> RPG Creature Search</h1>
-      <p>Search and filter through fantasy creatures and monsters</p>
-    </header>
+    <div class="container">
+        <header>
+            <h1>RPG Creature Search</h1>
+            <p class="subtitle">Search for creatures from the RPG universe</p>
+        </header>
 
-    <div class="search-section">
-      <div class="search-bar">
-        <i class="fas fa-search"></i>
-        <input
-          type="text"
-          id="search-input"
-          placeholder="Search creatures by name..."
-          autocomplete="off"
-        >
-      </div>
-
-      <div class="filters">
-        <select id="type-filter">
-          <option value="">All Types</option>
-          <option value="beast">Beast</option>
-          <option value="undead">Undead</option>
-          <option value="dragon">Dragon</option>
-          <option value="humanoid">Humanoid</option>
-          <option value="fiend">Fiend</option>
-          <option value="elemental">Elemental</option>
-          <option value="construct">Construct</option>
-          <option value="fey">Fey</option>
-          <option value="giant">Giant</option>
-        </select>
-
-        <select id="cr-filter">
-          <option value="">All CR</option>
-          <option value="0-4">CR 0-4</option>
-          <option value="5-10">CR 5-10</option>
-          <option value="11-20">CR 11-20</option>
-          <option value="21+">CR 21+</option>
-        </select>
-
-        <select id="size-filter">
-          <option value="">All Sizes</option>
-          <option value="tiny">Tiny</option>
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-          <option value="huge">Huge</option>
-          <option value="gargantuan">Gargantuan</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="results-section">
-      <div class="results-header">
-        <span id="results-count">0 creatures found</span>
-        <button id="clear-filters" class="clear-btn">
-          <i class="fas fa-times"></i> Clear Filters
-        </button>
-      </div>
-
-      <div id="creature-grid" class="creature-grid">
-        <!-- Creatures will be dynamically inserted here -->
-      </div>
-
-      <div id="no-results" class="no-results hidden">
-        <i class="fas fa-search"></i>
-        <h3>No creatures found</h3>
-        <p>Try adjusting your search or filters</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Creature Detail Modal -->
-  <div id="creature-modal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="modal-name"></h2>
-        <button id="close-modal" class="close-btn">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <div class="modal-body">
-        <div class="creature-stats">
-          <div class="stat-group">
-            <div class="stat">
-              <span class="stat-label">Type:</span>
-              <span id="modal-type" class="stat-value"></span>
+        <div class="search-container">
+            <div class="search-box">
+                <div class="input-group">
+                    <input type="text" id="search-input" placeholder="Enter creature name or ID (e.g., Pyrolynx or 1)" required>
+                    <button id="search-button">Search</button>
+                </div>
+                <p class="hint">Try: Pyrolynx, Aquoroc, or numbers 1-10</p>
             </div>
-            <div class="stat">
-              <span class="stat-label">Size:</span>
-              <span id="modal-size" class="stat-value"></span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Hit Points:</span>
-              <span id="modal-hp" class="stat-value"></span>
-            </div>
-          </div>
-
-          <div class="stat-group">
-            <div class="stat">
-              <span class="stat-label">Armor Class:</span>
-              <span id="modal-ac" class="stat-value"></span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Challenge Rating:</span>
-              <span id="modal-cr" class="stat-value"></span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">XP:</span>
-              <span id="modal-xp" class="stat-value"></span>
-            </div>
-          </div>
         </div>
 
-        <div class="creature-description">
-          <h3>Description</h3>
-          <p id="modal-description"></p>
+        <div class="result-container">
+            <div class="creature-card">
+                <div class="creature-header">
+                    <div class="creature-basic-info">
+                        <div class="creature-name-container">
+                            <h2 id="creature-name">Search for a creature</h2>
+                            <div class="creature-id" id="creature-id">#--</div>
+                        </div>
+                        <div class="creature-physical">
+                            <div class="physical-stat">
+                                <span class="stat-label">Weight:</span>
+                                <span id="weight" class="stat-value">--</span>
+                            </div>
+                            <div class="physical-stat">
+                                <span class="stat-label">Height:</span>
+                                <span id="height" class="stat-value">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="types-container">
+                    <h3>Types</h3>
+                    <div class="types" id="types">
+                        <span class="placeholder">Search to see types</span>
+                    </div>
+                </div>
+
+                <div class="stats-container">
+                    <h3>Battle Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-name">HP</div>
+                            <div class="stat-value-large" id="hp">--</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-name">Attack</div>
+                            <div class="stat-value-large" id="attack">--</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-name">Defense</div>
+                            <div class="stat-value-large" id="defense">--</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-name">Special Attack</div>
+                            <div class="stat-value-large" id="special-attack">--</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-name">Special Defense</div>
+                            <div class="stat-value-large" id="special-defense">--</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-name">Speed</div>
+                            <div class="stat-value-large" id="speed">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="creature-abilities">
-          <h3>Abilities</h3>
-          <div class="ability-scores">
-            <div class="ability">
-              <span class="ability-name">STR</span>
-              <span id="modal-str" class="ability-value"></span>
-            </div>
-            <div class="ability">
-              <span class="ability-name">DEX</span>
-              <span id="modal-dex" class="ability-value"></span>
-            </div>
-            <div class="ability">
-              <span class="ability-name">CON</span>
-              <span id="modal-con" class="ability-value"></span>
-            </div>
-            <div class="ability">
-              <span class="ability-name">INT</span>
-              <span id="modal-int" class="ability-value"></span>
-            </div>
-            <div class="ability">
-              <span class="ability-name">WIS</span>
-              <span id="modal-wis" class="ability-value"></span>
-            </div>
-            <div class="ability">
-              <span class="ability-name">CHA</span>
-              <span id="modal-cha" class="ability-value"></span>
-            </div>
-          </div>
-        </div>
-      </div>
+        <footer>
+            <p>RPG Creature Search App - FreeCodeCamp Project</p>
+        </footer>
     </div>
-  </div>
 
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

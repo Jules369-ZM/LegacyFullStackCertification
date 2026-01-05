@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash Register</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-cash-register"></i> Cash Register</h1>
+            <p class="subtitle">Calculate change for customer purchases</p>
+        </header>
+
+        <main>
+            <div class="calculator-section">
+                <div class="price-display">
+                    <div class="price-label">Item Price:</div>
+                    <div class="price-value" id="price-display">$19.50</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="cash">
+                        <i class="fas fa-money-bill-wave"></i> Cash Received ($)
+                    </label>
+                    <input type="number" id="cash" step="0.01" min="0" placeholder="Enter cash amount">
+                </div>
+
+                <button id="purchase-btn" class="purchase-btn">
+                    <i class="fas fa-shopping-cart"></i> Purchase Item
+                </button>
+
+                <div class="result-container">
+                    <h2><i class="fas fa-exchange-alt"></i> Change Due</h2>
+                    <div class="change-display" id="change-due">
+                        Enter cash amount and click "Purchase Item"
+                    </div>
+                </div>
+            </div>
+
+            <div class="drawer-section">
+                <h2><i class="fas fa-database"></i> Cash in Drawer</h2>
+                <div class="drawer-grid" id="drawer-display">
+                    <!-- Drawer content will be populated by JavaScript -->
+                </div>
+                <div class="drawer-total">
+                    Total in drawer: <span id="drawer-total">$335.41</span>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3><i class="fas fa-info-circle"></i> How to Use:</h3>
+                <ul>
+                    <li>Enter the amount of cash provided by the customer in the "Cash Received" field.</li>
+                    <li>Click "Purchase Item" to calculate the change.</li>
+                    <li>The system will display the change due or alert if there's insufficient funds.</li>
+                    <li><strong>Status indicators:</strong>
+                        <span class="status-open">OPEN</span> = change can be given,
+                        <span class="status-closed">CLOSED</span> = exact change given,
+                        <span class="status-insufficient">INSUFFICIENT_FUNDS</span> = cannot provide change.
+                    </li>
+                </ul>
+            </div>
+
+            <div class="test-cases">
+                <h3><i class="fas fa-vial"></i> Test Cases</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" data-test="1">Test 1: Basic Change</button>
+                    <button class="test-btn" data-test="2">Test 2: Large Change</button>
+                    <button class="test-btn" data-test="3">Test 3: Insufficient Funds</button>
+                    <button class="test-btn" data-test="4">Test 4: Closed Drawer</button>
+                    <button class="reset-btn" id="reset-btn">Reset to Default</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Cash Register App - FreeCodeCamp Project</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
