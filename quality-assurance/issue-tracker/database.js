@@ -27,7 +27,13 @@ if (hasPostgreSQL) {
   const client = new MongoClient(uri);
   dbConnection = { client, dbName };
 } else {
-  throw new Error('No database configuration found. Set DATABASE_URL (PostgreSQL) or MONGODB_URI (MongoDB)');
+  // Fallback to in-memory database for testing
+  console.log('No external database configured, using in-memory database for testing');
+  dbType = 'memory';
+  dbConnection = {
+    issues: new Map(),
+    nextId: 1
+  };
 }
 
 let isConnected = false;
@@ -82,10 +88,21 @@ async function connectDB() {
         console.error('❌ MongoDB connection failed:', error.message);
         throw new Error('Unable to connect to MongoDB database');
       }
+    } else if (dbType === 'memory') {
+      // In-memory database for testing
+      console.log('✅ Using in-memory database for testing');
+      isConnected = true;
+      return dbConnection;
     }
   }
 
-  return dbType === 'postgresql' ? dbConnection : dbConnection.client.db(dbConnection.dbName);
+  if (dbType === 'postgresql') {
+    return dbConnection;
+  } else if (dbType === 'mongodb') {
+    return dbConnection.client.db(dbConnection.dbName);
+  } else {
+    return dbConnection;
+  }
 }
 
 // Helper function to generate unique IDs
@@ -93,6 +110,9 @@ function generateId() {
   if (dbType === 'mongodb') {
     // Use MongoDB ObjectId for MongoDB
     return new (require('mongodb').ObjectId)().toString();
+  } else if (dbType === 'memory') {
+    // Use numeric IDs for memory database
+    return (dbConnection.nextId++).toString();
   } else {
     // Use string IDs for PostgreSQL
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);

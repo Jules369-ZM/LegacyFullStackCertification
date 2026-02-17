@@ -54,7 +54,7 @@ router.get('/issues/:project', async (req, res) => {
       const result = await db.query(query, queryParams);
       const formattedIssues = result.rows.map(formatIssue);
       res.json(formattedIssues);
-    } else {
+    } else if (dbType === 'mongodb') {
       // MongoDB implementation
       const query = { project };
 
@@ -77,6 +77,27 @@ router.get('/issues/:project', async (req, res) => {
         .toArray();
 
       const formattedIssues = issues.map(formatIssue);
+      res.json(formattedIssues);
+    } else {
+      // Memory database implementation
+      const allIssues = Array.from(db.issues.values());
+      let filteredIssues = allIssues.filter(issue => issue.project === project);
+
+      // Apply filters
+      Object.keys(req.query).forEach(key => {
+        if (req.query[key] !== undefined) {
+          if (key === 'open') {
+            filteredIssues = filteredIssues.filter(issue => issue.open === (req.query[key] === 'true'));
+          } else {
+            filteredIssues = filteredIssues.filter(issue => issue[key] === req.query[key]);
+          }
+        }
+      });
+
+      // Sort by created_on descending
+      filteredIssues.sort((a, b) => new Date(b.created_on) - new Date(a.created_on));
+
+      const formattedIssues = filteredIssues.map(formatIssue);
       res.json(formattedIssues);
     }
   } catch (error) {
@@ -121,7 +142,7 @@ router.post('/issues/:project', async (req, res) => {
       const insertedIssue = result.rows[0];
 
       res.json(formatIssue(insertedIssue));
-    } else {
+    } else if (dbType === 'mongodb') {
       // MongoDB implementation
       const now = new Date();
       const issue = {
@@ -140,6 +161,25 @@ router.post('/issues/:project', async (req, res) => {
       const insertedIssue = await db.collection('issues').findOne({ _id: result.insertedId });
 
       res.json(formatIssue(insertedIssue));
+    } else {
+      // Memory database implementation
+      const now = new Date();
+      const issueId = generateId();
+      const issue = {
+        _id: issueId,
+        project,
+        issue_title,
+        issue_text,
+        created_by,
+        assigned_to,
+        status_text,
+        open: true,
+        created_on: now,
+        updated_on: now
+      };
+
+      db.issues.set(issueId, issue);
+      res.json(formatIssue(issue));
     }
   } catch (error) {
     console.error('POST issue error:', error);
@@ -213,7 +253,7 @@ router.put('/issues/:project', async (req, res) => {
       } else {
         res.json({ error: 'could not update', '_id': _id });
       }
-    } else {
+    } else if (dbType === 'mongodb') {
       // MongoDB implementation
       const { ObjectId } = require('mongodb');
 
@@ -264,6 +304,40 @@ router.put('/issues/:project', async (req, res) => {
       } else {
         res.json({ error: 'could not update', '_id': _id });
       }
+    } else {
+      // Memory database implementation
+      const issue = db.issues.get(_id);
+      if (!issue) {
+        return res.json({ error: 'could not update', '_id': _id });
+      }
+
+      const validUpdateFields = [
+        'issue_title',
+        'issue_text',
+        'created_by',
+        'assigned_to',
+        'status_text',
+        'open'
+      ];
+
+      let hasUpdateFields = false;
+      validUpdateFields.forEach(field => {
+        if (req.body[field] !== undefined) {
+          if (field === 'open') {
+            issue[field] = req.body[field] === true || req.body[field] === 'true';
+          } else {
+            issue[field] = req.body[field];
+          }
+          hasUpdateFields = true;
+        }
+      });
+
+      if (!hasUpdateFields) {
+        return res.json({ error: 'no update field(s) sent', '_id': _id });
+      }
+
+      issue.updated_on = new Date();
+      res.json({ result: 'successfully updated', '_id': _id });
     }
   } catch (error) {
     console.error('PUT issue error:', error);
@@ -302,7 +376,7 @@ router.delete('/issues/:project', async (req, res) => {
       } else {
         res.json({ error: 'could not delete', '_id': _id });
       }
-    } else {
+    } else if (dbType === 'mongodb') {
       // MongoDB implementation
       const { ObjectId } = require('mongodb');
 
@@ -323,6 +397,15 @@ router.delete('/issues/:project', async (req, res) => {
       } else {
         res.json({ error: 'could not delete', '_id': _id });
       }
+    } else {
+      // Memory database implementation
+      const issue = db.issues.get(_id);
+      if (!issue) {
+        return res.json({ error: 'could not delete', '_id': _id });
+      }
+
+      db.issues.delete(_id);
+      res.json({ result: 'successfully deleted', '_id': _id });
     }
   } catch (error) {
     console.error('DELETE issue error:', error);
