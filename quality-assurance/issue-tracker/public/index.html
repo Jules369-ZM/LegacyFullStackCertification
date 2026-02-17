@@ -1,110 +1,426 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Issue Tracker</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>Issue Tracker</h1>
-            <p>Track and manage project issues</p>
-        </header>
-
-        <div class="main-content">
-            <!-- Create Issue Form -->
-            <section class="card">
-                <h2>Create New Issue</h2>
-                <form id="issueForm">
-                    <div class="form-group">
-                        <label for="project">Project:</label>
-                        <input type="text" id="project" name="project" required placeholder="e.g., test-project">
-                    </div>
-                    <div class="form-group">
-                        <label for="issue_title">Issue Title:</label>
-                        <input type="text" id="issue_title" name="issue_title" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="issue_text">Issue Description:</label>
-                        <textarea id="issue_text" name="issue_text" rows="4" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="created_by">Created By:</label>
-                        <input type="text" id="created_by" name="created_by" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="assigned_to">Assigned To:</label>
-                        <input type="text" id="assigned_to" name="assigned_to" placeholder="Optional">
-                    </div>
-                    <div class="form-group">
-                        <label for="status_text">Status:</label>
-                        <input type="text" id="status_text" name="status_text" placeholder="Optional">
-                    </div>
-                    <button type="submit">Create Issue</button>
-                </form>
-            </section>
-
-            <!-- Filter Section -->
-            <section class="card">
-                <h2>Filter Issues</h2>
-                <div class="filter-group">
-                    <div class="form-group">
-                        <label for="filterProject">Project:</label>
-                        <input type="text" id="filterProject" placeholder="Filter by project">
-                    </div>
-                    <div class="form-group">
-                        <label for="filterCreatedBy">Created By:</label>
-                        <input type="text" id="filterCreatedBy" placeholder="Filter by creator">
-                    </div>
-                    <div class="form-group">
-                        <label for="filterAssignedTo">Assigned To:</label>
-                        <input type="text" id="filterAssignedTo" placeholder="Filter by assignee">
-                    </div>
-                    <div class="form-group">
-                        <label for="filterStatus">Status:</label>
-                        <input type="text" id="filterStatus" placeholder="Filter by status">
-                    </div>
-                    <div class="form-group">
-                        <label for="filterOpen">Open:</label>
-                        <select id="filterOpen">
-                            <option value="">All</option>
-                            <option value="true">Open</option>
-                            <option value="false">Closed</option>
-                        </select>
-                    </div>
-                    <div class="filter-actions">
-                        <button id="applyFilter">Apply Filter</button>
-                        <button id="clearFilter">Clear Filter</button>
-                        <button id="refreshIssues">Refresh</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Issues List -->
-            <section class="card">
-                <h2>Issues</h2>
-                <div id="issuesContainer">
-                    <p class="loading">Loading issues...</p>
-                </div>
-            </section>
+      <header>
+        <h1>Issue Tracker</h1>
+        <p>Example GET usage</p>
+        <div class="api-examples">
+          <div class="example">
+            <strong>/api/issues/{project}</strong>
+          </div>
+          <div class="example">
+            <strong>/api/issues/{project}?open=true&assigned_to=Joe</strong>
+          </div>
         </div>
-    </div>
+        <p>Example return</p>
+        <pre class="example-return">
+[
+  {
+    "_id": "5871dda29faedc3491ff93bb",
+    "issue_title": "Fix error in posting data",
+    "issue_text": "When we post data it has an error.",
+    "created_on": "2017-01-08T06:35:14.240Z",
+    "updated_on": "2017-01-08T06:35:14.240Z",
+    "created_by": "Joe",
+    "assigned_to": "Joe",
+    "open": true,
+    "status_text": "In QA"
+  },
+  ...
+ ]</pre
+        >
+      </header>
 
-    <!-- Modal for Issue Details -->
-    <div id="issueModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Issue Details</h2>
-            <div id="modalContent"></div>
-            <div class="modal-actions">
-                <button id="updateIssueBtn">Update Issue</button>
-                <button id="deleteIssueBtn" class="danger">Delete Issue</button>
+      <div class="main-content">
+        <!-- API Tests Section -->
+        <section class="card">
+          <h2>API Tests</h2>
+
+          <!-- Submit Issue Section -->
+          <div class="test-section">
+            <h3>Submit issue on apitest</h3>
+            <form id="submitIssueForm">
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>*Title</label>
+                  <input
+                    type="text"
+                    id="submitTitle"
+                    name="issue_title"
+                    required
+                  />
+                </div>
+                <div class="form-group required">
+                  <label>*Text</label>
+                  <input
+                    type="text"
+                    id="submitText"
+                    name="issue_text"
+                    required
+                  />
+                </div>
+                <div class="form-group required">
+                  <label>*Created by</label>
+                  <input
+                    type="text"
+                    id="submitCreatedBy"
+                    name="created_by"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>(opt)Assigned to</label>
+                  <input type="text" id="submitAssignedTo" name="assigned_to" />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Status text</label>
+                  <input type="text" id="submitStatusText" name="status_text" />
+                </div>
+              </div>
+              <button type="submit" id="submitIssueBtn">Submit Issue</button>
+            </form>
+          </div>
+
+          <!-- Update Issue Section -->
+          <div class="test-section">
+            <h3>
+              Update issue on apitest (Change any or all to update issue on the
+              _id supplied)
+            </h3>
+            <form id="updateIssueForm">
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>*_id</label>
+                  <input type="text" id="updateId" name="_id" required />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Title</label>
+                  <input type="text" id="updateTitle" name="issue_title" />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Text</label>
+                  <input type="text" id="updateText" name="issue_text" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>(opt)Created by</label>
+                  <input type="text" id="updateCreatedBy" name="created_by" />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Assigned to</label>
+                  <input type="text" id="updateAssignedTo" name="assigned_to" />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Status text</label>
+                  <input type="text" id="updateStatusText" name="status_text" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group checkbox-group">
+                  <label>
+                    <input type="checkbox" id="updateOpen" name="open" />
+                    Check to close issue
+                  </label>
+                </div>
+              </div>
+              <button type="submit" id="updateIssueBtn">Submit Issue</button>
+            </form>
+          </div>
+
+          <!-- Delete Issue Section -->
+          <div class="test-section">
+            <h3>Delete issue on apitest</h3>
+            <form id="deleteIssueForm">
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>_id</label>
+                  <input type="text" id="deleteId" name="_id" required />
+                </div>
+              </div>
+              <button type="submit" id="deleteIssueBtn" class="danger">
+                Delete Issue
+              </button>
+            </form>
+          </div>
+
+          <!-- Results Display -->
+          <div class="results-section">
+            <h3>Results</h3>
+            <div id="resultsContainer" class="results-container">
+              <p class="loading">Ready to test...</p>
             </div>
-        </div>
+          </div>
+        </section>
+
+        <!-- Comprehensive Endpoint Testing Section -->
+        <section class="card">
+          <h2>Comprehensive Endpoint Testing</h2>
+
+          <!-- GET Issues Endpoint Testing -->
+          <div class="test-section">
+            <h3>GET /api/issues/{project} - View Issues</h3>
+            <form id="getIssuesForm">
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>*Project</label>
+                  <input type="text" id="getProject" value="apitest" required />
+                </div>
+                <div class="form-group">
+                  <label>Filter: open</label>
+                  <select id="getOpenFilter">
+                    <option value="">All</option>
+                    <option value="true">Open only</option>
+                    <option value="false">Closed only</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Filter: created_by</label>
+                  <input
+                    type="text"
+                    id="getCreatedByFilter"
+                    placeholder="e.g., Joe"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Filter: assigned_to</label>
+                  <input
+                    type="text"
+                    id="getAssignedToFilter"
+                    placeholder="e.g., Jane"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Filter: status_text</label>
+                  <input
+                    type="text"
+                    id="getStatusTextFilter"
+                    placeholder="e.g., In QA"
+                  />
+                </div>
+              </div>
+              <button type="submit" id="getIssuesBtn">Test GET Issues</button>
+              <button type="button" id="getIssuesWithFiltersBtn">
+                Test with Filters
+              </button>
+            </form>
+          </div>
+
+          <!-- POST Issue Endpoint Testing -->
+          <div class="test-section">
+            <h3>POST /api/issues/{project} - Create Issue</h3>
+            <form id="postIssueForm">
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>*Project</label>
+                  <input
+                    type="text"
+                    id="postProject"
+                    value="apitest"
+                    required
+                  />
+                </div>
+                <div class="form-group required">
+                  <label>*Title</label>
+                  <input
+                    type="text"
+                    id="postTitle"
+                    placeholder="e.g., Fix login bug"
+                  />
+                </div>
+                <div class="form-group required">
+                  <label>*Text</label>
+                  <input
+                    type="text"
+                    id="postText"
+                    placeholder="e.g., User cannot login"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>*Created by</label>
+                  <input
+                    type="text"
+                    id="postCreatedBy"
+                    placeholder="e.g., Developer"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Assigned to</label>
+                  <input
+                    type="text"
+                    id="postAssignedTo"
+                    placeholder="e.g., John Doe"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Status text</label>
+                  <input
+                    type="text"
+                    id="postStatusText"
+                    placeholder="e.g., In Progress"
+                  />
+                </div>
+              </div>
+              <button type="submit" id="postIssueBtn">Test POST Issue</button>
+              <button type="button" id="postIssueMissingBtn">
+                Test Missing Fields
+              </button>
+            </form>
+          </div>
+
+          <!-- PUT Issue Endpoint Testing -->
+          <div class="test-section">
+            <h3>PUT /api/issues/{project} - Update Issue</h3>
+            <form id="putIssueForm">
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>*_id</label>
+                  <input
+                    type="text"
+                    id="putId"
+                    placeholder="Enter issue ID from GET response"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Title</label>
+                  <input type="text" id="putTitle" placeholder="New title" />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Text</label>
+                  <input
+                    type="text"
+                    id="putText"
+                    placeholder="New description"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>(opt)Created by</label>
+                  <input
+                    type="text"
+                    id="putCreatedBy"
+                    placeholder="New creator"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Assigned to</label>
+                  <input
+                    type="text"
+                    id="putAssignedTo"
+                    placeholder="New assignee"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>(opt)Status text</label>
+                  <input
+                    type="text"
+                    id="putStatusText"
+                    placeholder="New status"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group checkbox-group">
+                  <label>
+                    <input type="checkbox" id="putOpen" />
+                    Toggle Open/Closed
+                  </label>
+                </div>
+              </div>
+              <button type="submit" id="putIssueBtn">Test PUT Issue</button>
+              <button type="button" id="putIssueMissingIdBtn">
+                Test Missing _id
+              </button>
+              <button type="button" id="putIssueNoFieldsBtn">
+                Test No Update Fields
+              </button>
+              <button type="button" id="putIssueInvalidIdBtn">
+                Test Invalid _id
+              </button>
+            </form>
+          </div>
+
+          <!-- DELETE Issue Endpoint Testing -->
+          <div class="test-section">
+            <h3>DELETE /api/issues/{project} - Delete Issue</h3>
+            <form id="deleteIssueForm">
+              <div class="form-row">
+                <div class="form-group required">
+                  <label>*_id</label>
+                  <input
+                    type="text"
+                    id="deleteId"
+                    placeholder="Enter issue ID to delete"
+                  />
+                </div>
+              </div>
+              <button type="submit" id="deleteIssueBtn" class="danger">
+                Test DELETE Issue
+              </button>
+              <button type="button" id="deleteIssueMissingIdBtn" class="danger">
+                Test Missing _id
+              </button>
+              <button type="button" id="deleteIssueInvalidIdBtn" class="danger">
+                Test Invalid _id
+              </button>
+            </form>
+          </div>
+
+          <!-- Quick Test Buttons -->
+          <div class="test-section">
+            <h3>Quick Test Scenarios</h3>
+            <div class="form-row">
+              <button
+                type="button"
+                id="testAllScenariosBtn"
+                class="quick-test-btn"
+              >
+                Run All Test Scenarios
+              </button>
+              <button type="button" id="clearResultsBtn">Clear Results</button>
+              <button type="button" id="viewAllIssuesBtn">
+                View All Issues
+              </button>
+            </div>
+          </div>
+
+          <!-- Results Display -->
+          <div class="results-section">
+            <h3>Test Results</h3>
+            <div id="resultsContainer" class="results-container">
+              <p class="loading">Ready to test all endpoints...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Examples Section -->
+        <section class="card">
+          <h2>Examples</h2>
+          <div class="examples">
+            <div class="example-item">
+              <a href="/api/issues/apitest" target="_blank"
+                >Go to /api/issues/apitest/ project</a
+              >
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
 
     <script src="/script.js"></script>
-</body>
+  </body>
 </html>

@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue Tracker - CRUD Interface</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .crud-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            background: #ecf0f1;
+            border: none;
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            background: #d5dbdb;
+        }
+
+        .tab-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .form-section {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="email"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .btn.secondary {
+            background-color: #95a5a6;
+        }
+
+        .btn.secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn.success {
+            background-color: #27ae60;
+        }
+
+        .btn.success:hover {
+            background-color: #229954;
+        }
+
+        .btn.danger {
+            background-color: #e74c3c;
+        }
+
+        .btn.danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn.warning {
+            background-color: #f39c12;
+        }
+
+        .btn.warning:hover {
+            background-color: #d68910;
+        }
+
+        /* Issues List */
+        .issues-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 15px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .issues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .issue-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fafafa;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .issue-card:hover {
+            background: #f0f0f0;
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .issue-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .issue-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .issue-meta span {
+            background: #ecf0f1;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .issue-description {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .issue-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .issue-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .status-open {
+            background-color: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .status-closed {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+
+        .notification.success { background-color: #27ae60; }
+        .notification.error { background-color: #e74c3c; }
+        .notification.info { background-color: #3498db; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .issue-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Issue Tracker - CRUD Interface</h1>
+            <p>Complete CRUD operations for issue management</p>
+        </header>
+
+        <div class="dashboard">
+            <!-- Sidebar Navigation -->
+            <div class="sidebar">
+                <h3>Project Settings</h3>
+                <div class="form-group">
+                    <label>Project Name</label>
+                    <input type="text" id="projectName" value="apitest" placeholder="Enter project name">
+                </div>
+
+                <div class="crud-tabs">
+                    <button class="tab-btn active" onclick="issueApp.switchTab('create')">➕ Create Issue</button>
+                    <button class="tab-btn" onclick="issueApp.switchTab('read')">📋 View Issues</button>
+                    <button class="tab-btn" onclick="issueApp.switchTab('update')">✏️ Update Issue</button>
+                    <button class="tab-btn" onclick="issueApp.switchTab('delete')">🗑️ Delete Issue</button>
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                    <h4>Quick Actions</h4>
+                    <button class="btn secondary" onclick="issueApp.loadIssues()">🔄 Refresh Issues</button>
+                    <button class="btn warning" onclick="issueApp.clearFilters()">🧹 Clear Filters</button>
+                    <button class="btn danger" onclick="issueApp.clearAllData()">💥 Clear All Data</button>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="main-content">
+                <!-- Create Issue Form -->
+                <div id="create-form" class="form-section active">
+                    <h2>Create New Issue</h2>
+                    <form id="createIssueForm">
+                        <div class="form-group">
+                            <label>Issue Title *</label>
+                            <input type="text" id="createTitle" required placeholder="Enter issue title">
+                        </div>
+                        <div class="form-group">
+                            <label>Issue Description *</label>
+                            <textarea id="createDescription" required placeholder="Describe the issue"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Created By *</label>
+                            <input type="text" id="createCreatedBy" required placeholder="Who created this issue?">
+                        </div>
+                        <div class="form-group">
+                            <label>Assigned To</label>
+                            <input type="text" id="createAssignedTo" placeholder="Who should work on this?">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <input type="text" id="createStatus" placeholder="e.g., In Progress, Pending Review">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn success">Create Issue</button>
+                            <button type="button" class="btn secondary" onclick="issueApp.resetCreateForm()">Reset Form</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- View Issues Section -->
+                <div id="read-form" class="form-section">
+                    <div class="issues-header">
+                        <h2>Issues List</h2>
+                        <div class="filters">
+                            <input type="text" id="filterTitle" class="filter-input" placeholder="Filter by title" onkeyup="issueApp.filterIssues()">
+                            <input type="text" id="filterCreator" class="filter-input" placeholder="Filter by creator" onkeyup="issueApp.filterIssues()">
+                            <select id="filterStatus" class="filter-input" onchange="issueApp.filterIssues()">
+                                <option value="">All Status</option>
+                                <option value="open">Open</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                            <button class="btn" onclick="issueApp.loadIssues()">Refresh</button>
+                        </div>
+                    </div>
+                    <div id="issuesContainer" class="issues-grid">
+                        <p style="text-align: center; color: #666; padding: 20px;">Loading issues...</p>
+                    </div>
+                </div>
+
+                <!-- Update Issue Form -->
+                <div id="update-form" class="form-section">
+                    <h2>Update Issue</h2>
+                    <div style="background: #ecf0f1; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                        <p><strong>Step 1:</strong> Select an issue from the View Issues tab to load it here for editing.</p>
+                        <p><strong>Step 2:</strong> Make your changes and click Update Issue.</p>
+                    </div>
+
+                    <form id="updateIssueForm">
+                        <input type="hidden" id="updateId">
+                        <div class="form-group">
+                            <label>Issue Title</label>
+                            <input type="text" id="updateTitle" placeholder="Update issue title">
+                        </div>
+                        <div class="form-group">
+                            <label>Issue Description</label>
+                            <textarea id="updateDescription" placeholder="Update issue description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Created By</label>
+                            <input type="text" id="updateCreatedBy" placeholder="Update creator">
+                        </div>
+                        <div class="form-group">
+                            <label>Assigned To</label>
+                            <input type="text" id="updateAssignedTo" placeholder="Update assignee">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <input type="text" id="updateStatus" placeholder="Update status">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="updateOpen">
+                                Mark as Open (unchecked = Closed)
+                            </label>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn warning">Update Issue</button>
+                            <button type="button" class="btn secondary" onclick="issueApp.resetUpdateForm()">Clear Selection</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Delete Issue Section -->
+                <div id="delete-form" class="form-section">
+                    <h2>Delete Issue</h2>
+                    <div style="background: #fadbd8; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                        <p><strong>Warning:</strong> This action cannot be undone. Please be careful when deleting issues.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Select Issue to Delete</label>
+                        <select id="deleteIssueSelect" class="filter-input">
+                            <option value="">-- Select an issue --</option>
+                        </select>
+                    </div>
+
+                    <div id="deletePreview" style="display: none; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 15px; margin: 15px 0;">
+                        <h4>Issue to Delete:</h4>
+                        <p><strong>Title:</strong> <span id="deletePreviewTitle"></span></p>
+                        <p><strong>Description:</strong> <span id="deletePreviewDesc"></span></p>
+                        <p><strong>Status:</strong> <span id="deletePreviewStatus"></span></p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn danger" onclick="issueApp.deleteSelectedIssue()">Delete Issue</button>
+                        <button type="button" class="btn secondary" onclick="issueApp.resetDeleteForm()">Clear Selection</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification System -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Issue Detail Modal -->
+    <div id="issueModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="issueApp.closeModal()">&times;</span>
+            <h2>Issue Details</h2>
+            <div id="modalContent"></div>
+            <div class="modal-actions">
+                <button class="btn warning" onclick="issueApp.loadIssueForUpdate()">Edit Issue</button>
+                <button class="btn danger" onclick="issueApp.loadIssueForDelete()">Delete Issue</button>
+                <button class="btn secondary" onclick="issueApp.closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class IssueTrackerApp {
+            constructor() {
+                this.currentProject = 'apitest';
+                this.issues = [];
+                this.filteredIssues = [];
+                this.selectedIssueId = null;
+
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadInitialData();
+            }
+
+            setupEventListeners() {
+                // Form submissions
+                document.getElementById('createIssueForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.createIssue();
+                });
+
+                document.getElementById('updateIssueForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.updateIssue();
+                });
+
+                // Project name change
+                document.getElementById('projectName').addEventListener('change', (e) => {
+                    this.currentProject = e.target.value;
+                    this.loadIssues();
+                });
+            }
+
+            switchTab(tabName) {
+                // Update tab buttons
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+
+                // Hide all forms
+                document.querySelectorAll('.form-section').forEach(form => form.classList.remove('active'));
+
+                // Show selected form
+                document.getElementById(`${tabName}-form`).classList.add('active');
+
+                // Load data if needed
+                if (tabName === 'read') {
+                    this.loadIssues();
+                } else if (tabName === 'delete') {
+                    this.loadDeleteOptions();
+                }
+            }
+
+            async createIssue() {
+                const data = {
+                    issue_title: document.getElementById('createTitle').value,
+                    issue_text: document.getElementById('createDescription').value,
+                    created_by: document.getElementById('createCreatedBy').value,
+                    assigned_to: document.getElementById('createAssignedTo').value,
+                    status_text: document.getElementById('createStatus').value
+                };
+
+                if (!data.issue_title || !data.issue_text || !data.created_by) {
+                    this.showNotification('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/issues/${this.currentProject}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.showNotification('Issue created successfully!', 'success');
+                        this.resetCreateForm();
+                        this.loadIssues();
+                    } else {
+                        this.showNotification(result.error || 'Failed to create issue', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Network error: ' + error.message, 'error');
+                }
+            }
+
+            async loadIssues() {
+                try {
+                    const response = await fetch(`/api/issues/${this.currentProject}`);
+                    this.issues = await response.json();
+                    this.filteredIssues = [...this.issues];
+                    this.displayIssues();
+                    this.loadDeleteOptions();
+                } catch (error) {
+                    this.showNotification('Failed to load issues: ' + error.message, 'error');
+                }
+            }
+
+            displayIssues() {
+                const container = document.getElementById('issuesContainer');
+
+                if (this.filteredIssues.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No issues found. Create your first issue!</p>';
+                    return;
+                }
+
+                container.innerHTML = this.filteredIssues.map(issue => `
+                    <div class="issue-card" onclick="issueApp.selectIssue('${issue._id}')">
+                        <div class="issue-title">${this.escapeHtml(issue.issue_title)}</div>
+                        <div class="issue-meta">
+                            <span>Project: ${this.escapeHtml(issue.project)}</span>
+                            <span>Created by: ${this.escapeHtml(issue.created_by)}</span>
+                            <span>Created: ${new Date(issue.created_on).toLocaleDateString()}</span>
+                        </div>
+                        <div class="issue-description">${this.escapeHtml(issue.issue_text)}</div>
+                        <div class="issue-meta">
+                            <span>Assigned to: ${issue.assigned_to || 'Unassigned'}</span>
+                            <span>Status: ${issue.status_text || 'No status'}</span>
+                        </div>
+                        <span class="issue-status ${issue.open ? 'status-open' : 'status-closed'}">
+                            ${issue.open ? 'OPEN' : 'CLOSED'}
+                        </span>
+                        <div class="issue-actions">
+                            <button class="btn secondary" onclick="event.stopPropagation(); issueApp.selectIssue('${issue._id}')">View Details</button>
+                            <button class="btn warning" onclick="event.stopPropagation(); issueApp.loadIssueForUpdate('${issue._id}')">Edit</button>
+                            <button class="btn danger" onclick="event.stopPropagation(); issueApp.loadIssueForDelete('${issue._id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            selectIssue(issueId) {
+                this.selectedIssueId = issueId;
+                const issue = this.issues.find(i => i._id === issueId);
+
+                if (issue) {
+                    document.getElementById('modalContent').innerHTML = `
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div>
+                                <h4>Basic Information</h4>
+                                <p><strong>Title:</strong> ${this.escapeHtml(issue.issue_title)}</p>
+                                <p><strong>Created By:</strong> ${this.escapeHtml(issue.created_by)}</p>
+                                <p><strong>Assigned To:</strong> ${issue.assigned_to || 'Unassigned'}</p>
+                                <p><strong>Status:</strong> ${issue.status_text || 'No status'}</p>
+                            </div>
+                            <div>
+                                <h4>Timeline</h4>
+                                <p><strong>Created:</strong> ${new Date(issue.created_on).toLocaleString()}</p>
+                                <p><strong>Last Updated:</strong> ${new Date(issue.updated_on).toLocaleString()}</p>
+                                <p><strong>Status:</strong> <span class="issue-status ${issue.open ? 'status-open' : 'status-closed'}">${issue.open ? 'OPEN' : 'CLOSED'}</span></p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <h4>Description</h4>
+                            <p style="background: #f8f9fa; padding: 10px; border-radius: 4px;">${this.escapeHtml(issue.issue_text)}</p>
+                        </div>
+                    `;
+
+                    document.getElementById('issueModal').style.display = 'block';
+                }
+            }
+
+            closeModal() {
+                document.getElementById('issueModal').style.display = 'none';
+            }
+
+            loadIssueForUpdate(issueId = null) {
+                const id = issueId || this.selectedIssueId;
+                if (!id) {
+                    this.showNotification('Please select an issue to update', 'error');
+                    return;
+                }
+
+                const issue = this.issues.find(i => i._id === id);
+                if (issue) {
+                    document.getElementById('updateId').value = issue._id;
+                    document.getElementById('updateTitle').value = issue.issue_title;
+                    document.getElementById('updateDescription').value = issue.issue_text;
+                    document.getElementById('updateCreatedBy').value = issue.created_by;
+                    document.getElementById('updateAssignedTo').value = issue.assigned_to || '';
+                    document.getElementById('updateStatus').value = issue.status_text || '';
+                    document.getElementById('updateOpen').checked = issue.open;
+
+                    this.switchTab('update');
+                    this.showNotification('Issue loaded for editing', 'info');
+                }
+            }
+
+            async updateIssue() {
+                const data = {
+                    _id: document.getElementById('updateId').value,
+                    issue_title: document.getElementById('updateTitle').value,
+                    issue_text: document.getElementById('updateDescription').value,
+                    created_by: document.getElementById('updateCreatedBy').value,
+                    assigned_to: document.getElementById('updateAssignedTo').value,
+                    status_text: document.getElementById('updateStatus').value,
+                    open: document.getElementById('updateOpen').checked
+                };
+
+                // Remove empty fields
+                Object.keys(data).forEach(key => {
+                    if (data[key] === '' || data[key] === undefined) delete data[key];
+                });
+
+                if (!data._id) {
+                    this.showNotification('Please select an issue to update', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/issues/${this.currentProject}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.showNotification('Issue updated successfully!', 'success');
+                        this.resetUpdateForm();
+                        this.loadIssues();
+                    } else {
+                        this.showNotification(result.error || 'Failed to update issue', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Network error: ' + error.message, 'error');
+                }
+            }
+
+            loadIssueForDelete(issueId = null) {
+                const id = issueId || this.selectedIssueId;
+                if (!id) {
+                    this.showNotification('Please select an issue to delete', 'error');
+                    return;
+                }
+
+                const issue = this.issues.find(i => i._id === id);
+                if (issue) {
+                    document.getElementById('deleteIssueSelect').value = issue._id;
+                    document.getElementById('deletePreviewTitle').textContent = issue.issue_title;
+                    document.getElementById('deletePreviewDesc').textContent = issue.issue_text;
+                    document.getElementById('deletePreviewStatus').textContent = issue.open ? 'Open' : 'Closed';
+                    document.getElementById('deletePreview').style.display = 'block';
+
+                    this.switchTab('delete');
+                }
+            }
+
+            async deleteSelectedIssue() {
+                const select = document.getElementById('deleteIssueSelect');
+                const issueId = select.value;
+
+                if (!issueId) {
+                    this.showNotification('Please select an issue to delete', 'error');
+                    return;
+                }
+
+                if (!confirm('Are you sure you want to delete this issue? This action cannot be undone.')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/issues/${this.currentProject}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ _id: issueId })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.showNotification('Issue deleted successfully!', 'success');
+                        this.resetDeleteForm();
+                        this.loadIssues();
+                    } else {
+                        this.showNotification(result.error || 'Failed to delete issue', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Network error: ' + error.message, 'error');
+                }
+            }
+
+            loadDeleteOptions() {
+                const select = document.getElementById('deleteIssueSelect');
+                select.innerHTML = '<option value="">-- Select an issue --</option>';
+
+                this.issues.forEach(issue => {
+                    const option = document.createElement('option');
+                    option.value = issue._id;
+                    option.textContent = `${issue.issue_title} (${issue.open ? 'Open' : 'Closed'})`;
+                    select.appendChild(option);
+                });
+            }
+
+            filterIssues() {
+                const titleFilter = document.getElementById('filterTitle').value.toLowerCase();
+                const creatorFilter = document.getElementById('filterCreator').value.toLowerCase();
+                const statusFilter = document.getElementById('filterStatus').value;
+
+                this.filteredIssues = this.issues.filter(issue => {
+                    const matchesTitle = issue.issue_title.toLowerCase().includes(titleFilter);
+                    const matchesCreator = issue.created_by.toLowerCase().includes(creatorFilter);
+                    const matchesStatus = statusFilter === '' || (statusFilter === 'open' && issue.open) || (statusFilter === 'closed' && !issue.open);
+
+                    return matchesTitle && matchesCreator && matchesStatus;
+                });
+
+                this.displayIssues();
+            }
+
+            clearFilters() {
+                document.getElementById('filterTitle').value = '';
+                document.getElementById('filterCreator').value = '';
+                document.getElementById('filterStatus').value = '';
+                this.filteredIssues = [...this.issues];
+                this.displayIssues();
+            }
+
+            resetCreateForm() {
+                document.getElementById('createIssueForm').reset();
+            }
+
+            resetUpdateForm() {
+                document.getElementById('updateIssueForm').reset();
+                document.getElementById('updateId').value = '';
+            }
+
+            resetDeleteForm() {
+                document.getElementById('deleteIssueSelect').value = '';
+                document.getElementById('deletePreview').style.display = 'none';
+            }
+
+            async clearAllData() {
+                if (!confirm('This will delete ALL issues in the current project. Are you sure?')) {
+                    return;
+                }
+
+                // Get all issue IDs and delete them one by one
+                for (const issue of this.issues) {
+                    await fetch(`/api/issues/${this.currentProject}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ _id: issue._id })
+                    });
+                }
+
+                this.showNotification('All issues cleared!', 'success');
+                this.loadIssues();
+            }
+
+            loadInitialData() {
+                this.currentProject = document.getElementById('projectName').value;
+                this.loadIssues();
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type} show`;
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the application
+        const issueApp = new IssueTrackerApp();
+    </script>
+</body>
+</html>

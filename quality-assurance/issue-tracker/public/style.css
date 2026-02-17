@@ -47,8 +47,39 @@ h2 {
 }
 
 /* Form Styles */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
 .form-group {
     margin-bottom: 15px;
+}
+
+.form-group.required label::after {
+    content: " *";
+    color: #e74c3c;
+}
+
+.form-group.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.form-group.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.form-group.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
 }
 
 label {
@@ -56,6 +87,7 @@ label {
     margin-bottom: 5px;
     font-weight: 600;
     color: #555;
+    font-size: 14px;
 }
 
 input[type="text"],
@@ -219,21 +251,205 @@ button.danger:hover {
     justify-content: flex-end;
 }
 
+/* API Examples */
+.api-examples {
+    margin: 15px 0;
+}
+
+.example {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+.example-return {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    overflow-x: auto;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Test Sections */
+.test-section {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: #f8f9fa;
+}
+
+.test-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #495057;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Results Section */
+.results-section {
+    margin-top: 30px;
+    border-top: 2px solid #e9ecef;
+    padding-top: 20px;
+}
+
+.results-container {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 15px;
+    min-height: 100px;
+}
+
+.results-container pre {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Examples Section */
+.examples {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.example-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 15px;
+    text-align: center;
+}
+
+.example-item a {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.example-item a:hover {
+    text-decoration: underline;
+}
+
+/* Quick Test Buttons */
+.quick-test-btn {
+    background-color: #9b59b6;
+    font-size: 14px;
+    padding: 10px 20px;
+}
+
+.quick-test-btn:hover {
+    background-color: #8e44ad;
+}
+
+/* Enhanced Results Container */
+.results-container {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 15px;
+    min-height: 150px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.results-container h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.results-container pre {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 15px;
+}
+
+/* Test Scenario Results */
+.test-result {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 4px;
+    border-left: 4px solid #3498db;
+}
+
+.test-result.success {
+    border-left-color: #27ae60;
+    background-color: #d5f4e6;
+}
+
+.test-result.error {
+    border-left-color: #e74c3c;
+    background-color: #fadbd8;
+}
+
+.test-result h5 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+/* Enhanced Form Styling */
+.test-section form {
+    margin-bottom: 10px;
+}
+
+.test-section button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.test-section .danger {
+    background-color: #e74c3c;
+}
+
+.test-section .danger:hover {
+    background-color: #c0392b;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container {
         padding: 10px;
     }
 
-    .filter-group {
+    .form-row {
         grid-template-columns: 1fr;
     }
 
-    .filter-actions {
-        flex-direction: column;
+    .test-section {
+        padding: 15px;
     }
 
-    .modal-content {
-        width: 95%;
+    .example-return {
+        font-size: 11px;
+    }
+
+    .results-container pre {
+        font-size: 11px;
     }
 }

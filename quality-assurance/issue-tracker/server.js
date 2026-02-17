@@ -18,6 +18,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Serve static files from public directory
+app.use(express.static('public'));
+
 // Connect to database
 connectDB().then(() => {
   console.log('MongoDB connected successfully');
