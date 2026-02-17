@@ -19,7 +19,7 @@ create_database() {
 
   $PSQL "CREATE TABLE IF NOT EXISTS services (
     service_id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(50) UNIQUE NOT NULL,
     price DECIMAL(5,2) NOT NULL
   );"
 

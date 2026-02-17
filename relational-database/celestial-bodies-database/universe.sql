@@ -11,7 +11,7 @@ CREATE TABLE galaxy (
     name VARCHAR(30) UNIQUE NOT NULL,
     description TEXT,
     galaxy_type VARCHAR(20),
-    age_in_millions_of_years NUMERIC(4,1),
+    age_in_millions_of_years NUMERIC(6,1),
     distance_from_earth NUMERIC(5,2)
 );
 
@@ -33,7 +33,7 @@ CREATE TABLE planet (
     age_in_millions_of_years NUMERIC(6,1),
     has_life BOOLEAN DEFAULT false,
     is_spherical BOOLEAN DEFAULT true,
-    distance_from_earth NUMERIC(5,2)
+    distance_from_earth NUMERIC(6,2)
 );
 
 CREATE TABLE moon (
@@ -43,7 +43,7 @@ CREATE TABLE moon (
     moon_type VARCHAR(15),
     age_in_millions_of_years NUMERIC(6,1),
     is_spherical BOOLEAN DEFAULT true,
-    distance_from_earth NUMERIC(5,2)
+    distance_from_earth NUMERIC(6,2)
 );
 
 -- Insert data into galaxy table
