@@ -32,7 +32,7 @@ const Mocha = require('mocha'),
     fs = require('fs'),
     path = require('path');
 
-let mocha = new Mocha();
+const mocha = new Mocha();
 let testDir = './tests'
 
 

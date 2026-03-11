@@ -1,61 +1,66 @@
+'use strict';
+
+const express     = require('express');
+const bodyParser  = require('body-parser');
+const expect      = require('chai').expect;
+const cors        = require('cors');
 require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const apiRoutes = require('./routes/api');
-const runner = require('./test-runner');
-const fccTestingRoutes = require('./routes/fcctesting.js');
+require('./db-connection.js'); // Ensure database connection is established
 
-// Initialize database
-const { connectDB } = require('./database');
+const apiRoutes         = require('./routes/api.js');
+const fccTestingRoutes  = require('./routes/fcctesting.js');
+const runner            = require('./test-runner');
 
-const app = express();
+let app = express();
 
-// Basic Configuration
-const port = process.env.PORT || 3000;
+app.use('/public', express.static(process.cwd() + '/public'));
 
-// Middleware
-app.use(cors());
+app.use(cors({origin: '*'})); //For FCC testing purposes only
+
+
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve static files from public directory
-app.use(express.static('public'));
+//Sample front-end
+app.route('/:project/')
+  .get(function (req, res) {
+    res.sendFile(process.cwd() + '/views/issue.html');
+  });
 
-// Connect to database
-connectDB().then(() => {
-  console.log('MongoDB connected successfully');
-}).catch(err => {
-  console.error('MongoDB connection error:', err);
-  console.log('Continuing without database connection for testing purposes');
-});
+//Index page (static HTML)
+app.route('/')
+  .get(function (req, res) {
+    res.sendFile(process.cwd() + '/views/index.html');
+  });
 
-// Routes
-app.get('/', (req, res) => {
-  res.send('Issue Tracker API');
-});
-
-app.use('/api', apiRoutes);
-
-// FCC Testing Routes
+//For FCC testing purposes
 fccTestingRoutes(app);
 
-// Start server
-const listener = app.listen(port, () => {
-  console.log(`Issue Tracker API listening on port ${port}`);
+//Routing for API 
+apiRoutes(app);  
+    
+//404 Not Found Middleware
+app.use(function(req, res, next) {
+  res.status(404)
+    .type('text')
+    .send('Not Found');
+});
 
-  // Run internal test-runner only in dev mode (not during npm test / mocha)
-  if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+//Start our server and tests!
+const listener = app.listen(process.env.PORT || 3000, function () {
+  console.log('Your app is listening on port ' + listener.address().port);
+  if(process.env.NODE_ENV==='test') {
     console.log('Running Tests...');
-    setTimeout(() => {
+    setTimeout(function () {
       try {
         runner.run();
-      } catch(err) {
+      } catch(e) {
         console.log('Tests are not valid:');
-        console.error(err);
+        console.error(e);
       }
-    }, 1500);
+    }, 3500);
   }
 });
 
-module.exports = app;
+module.exports = app; //for testing
