@@ -357,18 +357,18 @@
           <!-- DELETE Issue Endpoint Testing -->
           <div class="test-section">
             <h3>DELETE /api/issues/{project} - Delete Issue</h3>
-            <form id="deleteIssueForm">
+            <form id="deleteFormComp">
               <div class="form-row">
                 <div class="form-group required">
                   <label>*_id</label>
                   <input
                     type="text"
-                    id="deleteId"
+                    id="deleteIdComp"
                     placeholder="Enter issue ID to delete"
                   />
                 </div>
               </div>
-              <button type="submit" id="deleteIssueBtn" class="danger">
+              <button type="submit" id="deleteIssueBtnComp" class="danger">
                 Test DELETE Issue
               </button>
               <button type="button" id="deleteIssueMissingIdBtn" class="danger">
@@ -401,7 +401,7 @@
           <!-- Results Display -->
           <div class="results-section">
             <h3>Test Results</h3>
-            <div id="resultsContainer" class="results-container">
+            <div id="compResultsContainer" class="results-container">
               <p class="loading">Ready to test all endpoints...</p>
             </div>
           </div>

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -43,8 +44,8 @@ fccTestingRoutes(app);
 const listener = app.listen(port, () => {
   console.log(`Issue Tracker API listening on port ${port}`);
 
-  // Run tests on server start if not in production
-  if (process.env.NODE_ENV !== 'production') {
+  // Run internal test-runner only in dev mode (not during npm test / mocha)
+  if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     console.log('Running Tests...');
     setTimeout(() => {
       try {

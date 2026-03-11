@@ -3,12 +3,6 @@ const chai = require("chai");
 const assert = chai.assert;
 const server = require("../server");
 
-// Add this at the top of both test files
-const mocha = require('mocha');
-const suite = mocha.suite;
-const test = mocha.test;
-// OR use global mocha functions
-// const { suite, test } = mocha;
 chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
