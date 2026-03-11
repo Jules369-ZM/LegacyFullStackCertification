@@ -47,22 +47,45 @@ const convertHandler = {
 function parseInput(input) {
   if (!input) return { error: 'invalid number' };
 
-  // Extract number and unit
-  const regex = /^(\d+(\.\d+)?)?([a-zA-Z]+)$/;
-  const match = input.match(regex);
-
-  if (!match) return { error: 'invalid number and unit' };
-
-  let num = match[1] ? parseFloat(match[1]) : 1;
-  let unit = match[3].toLowerCase();
-
-  // Validate unit
   const validUnits = ['gal', 'l', 'lbs', 'kg', 'mi', 'km'];
-  if (!validUnits.includes(unit)) {
+
+  // Try to extract the unit from the end of the string (letters at the end)
+  const unitMatch = input.match(/([a-zA-Z]+)$/);
+  const numberPart = unitMatch ? input.slice(0, input.length - unitMatch[1].length) : input;
+  const unitPart = unitMatch ? unitMatch[1].toLowerCase() : '';
+
+  const validUnit = validUnits.includes(unitPart);
+
+  // Validate the number part (must be empty/absent, or a valid number like 3, 3.5, 3/7.2)
+  let num;
+  if (numberPart === '' || numberPart === undefined) {
+    num = 1; // no number defaults to 1
+  } else {
+    // Check if it's a simple fraction (e.g. 3/7.2) — only one slash allowed
+    const fractionMatch = numberPart.match(/^(\d+(\.\d+)?)\/(\d+(\.\d+)?)$/);
+    const simpleMatch = numberPart.match(/^(\d+(\.\d+)?)$/);
+
+    if (fractionMatch) {
+      const numerator = parseFloat(fractionMatch[1]);
+      const denominator = parseFloat(fractionMatch[3]);
+      if (denominator === 0) {
+        return validUnit ? { error: 'invalid number' } : { error: 'invalid number and unit' };
+      }
+      num = numerator / denominator;
+    } else if (simpleMatch) {
+      num = parseFloat(simpleMatch[1]);
+    } else {
+      // Number is invalid — check if unit is also invalid
+      return validUnit ? { error: 'invalid number' } : { error: 'invalid number and unit' };
+    }
+  }
+
+  if (!validUnit) {
     return { error: 'invalid unit' };
   }
 
   // Handle special case for 'L' vs 'l'
+  let unit = unitPart;
   if (unit === 'l') unit = 'L';
 
   return { num, unit };
